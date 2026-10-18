@@ -1,6 +1,6 @@
 # Pro-1: device notes
 
-Sources: Behringer PRO-1 Quick Start Guide (our project files) and the third-party "Behringer Pro-1 Ctrlr panel" documentation v2.3 (2021-11-28, ). The second source is not from Behringer; treat its claims as community knowledge.
+Sources: Behringer PRO-1 Quick Start Guide (our project files) and the third-party "Behringer Pro-1 Ctrlr panel" documentation v2.3 (2021-11-28). The second source is not from Behringer; treat its claims as community knowledge.
 
 ## The key limit
 
