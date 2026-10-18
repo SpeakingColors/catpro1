@@ -11,6 +11,9 @@ Planning stage. Free and open source. Donations welcome (link coming).
 - [Device notes](docs/DEVICE-NOTES.md): what is confirmed from manuals, and what is still missing.
 - [Roadmap](ROADMAP.md)
 
+## Patch book site
+Browse and share Pro-1 patches in the browser: `docs/index.html` (GitHub Pages from `/docs`). Format: [docs/PATCH-FORMAT.md](docs/PATCH-FORMAT.md). How to share and switch Pages on: [docs/SHARING.md](docs/SHARING.md).
+
 ## License
 AGPL-3.0-or-later, see [LICENSE](LICENSE).
 

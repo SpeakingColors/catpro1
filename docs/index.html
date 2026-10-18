@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cat Pro-1 Patch Book</title>
+<style>
+:root{--bg:#1b1713;--panel:#2a231c;--ink:#f1e6d4;--dim:#a99a85;--acc:#e8a33d;--line:#43382c;--led:#ff5a3c}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f4ecdf;--panel:#e6d9c4;--ink:#2a2118;--dim:#6d5d48;--line:#c9b99f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,sans-serif}
+header,main{max-width:1100px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:1.4rem;margin:.3rem 0}h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 8px}
+.layout{display:grid;grid-template-columns:230px 1fr;gap:14px}@media(max-width:760px){.layout{grid-template-columns:1fr}}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}
+.list button.p{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);padding:6px;border-radius:5px;cursor:pointer}
+.list button.p:hover,.list button.p.on{background:var(--line)}.list small{color:var(--dim)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:0}
+.sec{display:inline-block;vertical-align:top;border:1px solid var(--line);border-radius:6px;padding:8px;margin:0 6px 8px 0}
+.knobs{display:flex;gap:8px;flex-wrap:wrap}.k{width:58px;text-align:center;font-size:11px;color:var(--dim);user-select:none;touch-action:none}
+.k svg{display:block;margin:0 auto;cursor:ns-resize}.k b{display:block;color:var(--ink);font-weight:600}
+.sw{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--dim)}
+.sw label{cursor:pointer}.sw select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:11px}
+input[type=text],textarea{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:6px;font:inherit}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.row>*{min-width:0}
+button.b{background:var(--acc);color:#1b1713;border:0;border-radius:5px;padding:7px 12px;font-weight:600;cursor:pointer}
+button.g{background:var(--line);color:var(--ink)}
+.scope{width:100%;height:70px;background:var(--bg);border:1px solid var(--line);border-radius:5px;display:block}
+.note{color:var(--dim);font-size:12px}
+</style></head><body>
+<header><h1>🐈 Cat Pro-1 Patch Book</h1>
+<div class="note">A recipe book for the Behringer Pro-1. The Pro-1 cannot load patches over MIDI, so set your knobs to match the panel below. Move a knob here to build your own patch. Everything stays in your browser.</div></header>
+<main><div class="layout">
+<div class="list"><h2>Patches</h2><div id="plist"></div>
+<div class="row"><button class="b g" id="imp">Import</button><input type="file" id="file" accept=".json" hidden></div>
+<div class="note">Submit yours: see SHARING.md in the repo.</div></div>
+<div class="panel">
+<div class="row"><input type="text" id="name" placeholder="Patch name"><input type="text" id="author" placeholder="Author"><input type="text" id="cat" placeholder="Category"></div>
+<canvas class="scope" id="scope" width="900" height="70"></canvas>
+<div id="panel"></div>
+<textarea id="notes" rows="2" placeholder="Notes"></textarea>
+<div class="row"><button class="b" id="exp">Export JSON</button><button class="b g" id="copy">Copy JSON</button><button class="b g" id="reset">Reset</button></div>
+</div></div></main>
+<script>
+const K=(l,p,max=10,step=0.1)=>({l,p,max,step});
+const SECS=[
+["Oscillator A",[K("Freq","oscA.freq"),K("Octave","oscA.octave",3,1),K("PW","oscA.pw")],[["Saw","oscA.saw"],["Pulse","oscA.pulse"],["Sync","oscA.sync"]]],
+["Oscillator B",[K("Freq","oscB.freq"),K("Octave","oscB.octave",3,1),K("PW","oscB.pw")],[["Saw","oscB.saw"],["Tri","oscB.tri"],["Pulse","oscB.pulse"],["Lo freq","oscB.loFreq"],["Kybd","oscB.kybd"]]],
+["Mixer",[K("Osc A","mixer.oscA"),K("Osc B","mixer.oscB"),K("Noise","mixer.noise")],[]],
+["Filter",[K("Cutoff","filter.cutoff"),K("Reso","filter.resonance"),K("Env amt","filter.envAmount"),K("Kybd","filter.kybdAmount")],[]],
+["Filter env",[K("A","filterEnv.attack"),K("D","filterEnv.decay"),K("S","filterEnv.sustain"),K("R","filterEnv.release")],[]],
+["Amp env",[K("A","ampEnv.attack"),K("D","ampEnv.decay"),K("S","ampEnv.sustain"),K("R","ampEnv.release")],[]],
+["LFO",[K("Freq","lfo.freq")],[["Saw","lfo.saw"],["Tri","lfo.tri"],["Pulse","lfo.pulse"]]],
+["Glide",[K("Rate","glide.rate")],[["Auto","glide.auto"]]],
+["Mod",[K("Filt env","mod.filterEnv.amount"),K("Osc B","mod.oscB.amount"),K("LFO","mod.lfo.amount")],[],
+ [["Filt env route","mod.filterEnv.route",["wheel","direct"]],["Osc B route","mod.oscB.route",["wheel","direct"]],["LFO route","mod.lfo.route",["wheel","direct"]],
+  ["To osc A freq","mod.dest.oscAFreq",["off","wheel","direct"]],["To osc A PW","mod.dest.oscAPw",["off","wheel","direct"]],["To osc B freq","mod.dest.oscBFreq",["off","wheel","direct"]],["To osc B PW","mod.dest.oscBPw",["off","wheel","direct"]],["To filter","mod.dest.filter",["off","wheel","direct"]]]],
+["Modes",[],[["Poly","modes.poly"],["Retrig","modes.retrig"],["Repeat","modes.repeat"],["Drone","modes.drone"]],[["Arp","modes.arp",["off","up","updown"]],["Seq","modes.seq",["off","seq1","seq2"]]]],
+["Global",[K("Tune","global.tune"),K("Volume","global.volume")],[]]];
+const INIT={format:"catpro1-patch",version:1,name:"Init",author:"",category:"",tags:[],notes:"",license:"CC0-1.0",panel:{oscA:{freq:5,octave:1,saw:true,pulse:false,pw:5,sync:false},oscB:{freq:5,octave:1,saw:true,tri:false,pulse:false,pw:5,loFreq:false,kybd:true},mixer:{oscA:7,oscB:0,noise:0},filter:{cutoff:6,resonance:2,envAmount:3,kybdAmount:5},filterEnv:{attack:0,decay:4,sustain:3,release:2},ampEnv:{attack:0,decay:4,sustain:8,release:2},glide:{rate:0,auto:false},lfo:{freq:4,saw:false,tri:true,pulse:false},mod:{filterEnv:{amount:0,route:"wheel"},oscB:{amount:0,route:"wheel"},lfo:{amount:0,route:"wheel"},dest:{oscAFreq:"off",oscAPw:"off",oscBFreq:"off",oscBPw:"off",filter:"off"}},modes:{poly:false,retrig:false,repeat:false,drone:false,arp:"off",seq:"off"},global:{tune:5,volume:7}},cables:[]};
+let P=structuredClone(INIT);
+const get=(o,p)=>p.split(".").reduce((a,k)=>a&&a[k],o), set=(o,p,v)=>{const a=p.split("."),l=a.pop();a.reduce((x,k)=>x[k]??={},o)[l]=v};
+const num=(p)=>+get(P.panel,p)||0;
+function knobSvg(v,max){const a=-135+270*(v/max),r=a*Math.PI/180;return `<svg width="44" height="44" viewBox="-22 -22 44 44"><circle r="18" fill="#3a3027" stroke="#6b5a45" stroke-width="2"/><line x1="0" y1="0" x2="${(14*Math.sin(r)).toFixed(1)}" y2="${(-14*Math.cos(r)).toFixed(1)}" stroke="#e8a33d" stroke-width="3" stroke-linecap="round"/></svg>`}
+function build(){const root=document.getElementById("panel");root.innerHTML="";
+SECS.forEach(([t,ks,sw,sel])=>{const d=document.createElement("div");d.className="sec";d.innerHTML=`<h2>${t}</h2>`;
+const kn=document.createElement("div");kn.className="knobs";
+ks.forEach(k=>{const e=document.createElement("div");e.className="k";const draw=()=>{const v=num(k.p);e.innerHTML=knobSvg(v,k.max)+`${k.l}<b>${k.step==1?v:v.toFixed(1)}</b>`};draw();
+ let y0,v0;e.onpointerdown=ev=>{e.setPointerCapture(ev.pointerId);y0=ev.clientY;v0=num(k.p)};
+ e.onpointermove=ev=>{if(y0==null)return;let v=v0+(y0-ev.clientY)/(k.max==3?30:15)*(k.max/10);v=Math.min(k.max,Math.max(0,k.step==1?Math.round(v):Math.round(v*10)/10));set(P.panel,k.p,v);draw();scope()};
+ e.onpointerup=()=>y0=null;e.ondblclick=()=>{set(P.panel,k.p,get(INIT.panel,k.p));draw();scope()};kn.appendChild(e)});
+d.appendChild(kn);
+const s=document.createElement("div");s.className="sw";
+sw.forEach(([l,p])=>{const lb=document.createElement("label");const c=document.createElement("input");c.type="checkbox";c.checked=!!get(P.panel,p);c.onchange=()=>{set(P.panel,p,c.checked);scope()};lb.append(c," "+l);s.appendChild(lb)});
+(sel||[]).forEach(([l,p,o])=>{const lb=document.createElement("label");const x=document.createElement("select");o.forEach(v=>{const op=new Option(v,v);x.add(op)});x.value=get(P.panel,p)||o[0];x.onchange=()=>{set(P.panel,p,x.value);scope()};lb.append(l+" ",x);s.appendChild(lb)});
+d.appendChild(s);root.appendChild(d)});
+["name","author","cat","notes"].forEach(id=>{const e=document.getElementById(id);e.value=P[id=="cat"?"category":id]||""});scope()}
+for(const [id,key] of [["name","name"],["author","author"],["cat","category"],["notes","notes"]])document.getElementById(id).oninput=e=>P[key]=e.target.value;
+/* the scope is a rough picture of the oscillator mix, not a model of the real synth */
+function scope(){const c=document.getElementById("scope"),g=c.getContext("2d"),w=c.width,h=c.height;g.clearRect(0,0,w,h);
+const css=getComputedStyle(document.body);g.strokeStyle=css.getPropertyValue("--acc");g.lineWidth=2;g.beginPath();
+const A=num("mixer.oscA")/10,B=num("mixer.oscB")/10,N=num("mixer.noise")/10,cut=num("filter.cutoff")/10,res=num("filter.resonance")/10;
+const wave=(ph,sa,pu,tri,pw)=>{let v=0;if(sa)v+=2*(ph%1)-1;if(pu)v+=(ph%1<pw)?1:-1;if(tri)v+=1-4*Math.abs((ph%1)-.5);return v};
+const o=P.panel;
+for(let x=0;x<w;x++){const t=x/w*4;let v=A*wave(t,o.oscA.saw,o.oscA.pulse,false,.1+.8*num("oscA.pw")/10)+B*wave(t*(1+(num("oscB.freq")-5)/50),o.oscB.saw,o.oscB.pulse,o.oscB.tri,.1+.8*num("oscB.pw")/10);
+ v+=N*(Math.sin(x*12.9898)*43758.5453%1-.5);v=v/(1+A+B)*(0.35+0.65*cut)*(1+res*.3);const y=h/2-v*h*.4;x?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}
+function list(){fetch("patches/index.json").then(r=>r.json()).then(async j=>{const el=document.getElementById("plist");el.innerHTML="";
+ for(const f of j.patches){try{const p=await (await fetch("patches/"+f)).json();const b=document.createElement("button");b.className="p";b.innerHTML=`${p.name}<br><small>${p.category||""} ${p.author?"· "+p.author:""}</small>`;b.onclick=()=>{load(p);document.querySelectorAll(".p").forEach(x=>x.classList.remove("on"));b.classList.add("on")};el.appendChild(b)}catch(e){}}}).catch(()=>{document.getElementById("plist").textContent="No patches found."})}
+function load(p){if(p.format!=="catpro1-patch"||!p.panel){alert&&0;document.querySelector(".note").textContent="Not a catpro1 patch file.";return}
+ P=structuredClone(INIT);Object.assign(P,p);P.panel=merge(structuredClone(INIT.panel),p.panel);build()}
+function merge(a,b){for(const k in b)a[k]=(b[k]&&typeof b[k]=="object"&&!Array.isArray(b[k]))?merge(a[k]||{},b[k]):b[k];return a}
+const json=()=>JSON.stringify(P,null,2);
+document.getElementById("exp").onclick=()=>{const u=URL.createObjectURL(new Blob([json()],{type:"application/json"}));const a=document.createElement("a");a.href=u;a.download=(P.name||"patch").replace(/\W+/g,"-")+".json";a.click()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(json()).catch(()=>{});
+document.getElementById("reset").onclick=()=>{P=structuredClone(INIT);build()};
+document.getElementById("imp").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{load(JSON.parse(t))}catch(x){document.querySelector(".note").textContent="Could not read that file."}})};
+build();list();
+</script></body></html>
