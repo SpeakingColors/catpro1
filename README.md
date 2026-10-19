@@ -5,7 +5,7 @@
 Patch book and global-settings tool for the Behringer Pro-1 on Linux.
 
 ## Status
-Planning stage. Free and open source. Donations welcome (link coming).
+Planning stage. Free and open source. Donations welcome: https://ko-fi.com/studio87
 
 ## Docs
 - [Device notes](docs/DEVICE-NOTES.md): what is confirmed from manuals, and what is still missing.
