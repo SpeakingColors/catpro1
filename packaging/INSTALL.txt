@@ -1,0 +1,15 @@
+Cat Pro-1 patch book (Studio 87)
+
+Nothing to install. Unzip this folder anywhere and open CatPro1-RecipeBook.html in your web browser.
+Everything stays on your computer: no accounts, no network, nothing collected.
+
+Files:
+- CatPro1-RecipeBook.html  the recipe book: Pro-1 panel drawn at real proportions (also CAT, TD-3-MO, TD-3)
+- CatPro1-PatchBook.html   the older simple patch book (works offline, patches included)
+- patches/                 the same patches as separate .json files
+- CatPro1-manual.pdf       the manual
+- PATCH-FORMAT.md          the patch file format
+- SHARING.md               how to share your patches
+
+To remove: delete the folder.
+Free and open source. Not affiliated with or endorsed by Behringer.

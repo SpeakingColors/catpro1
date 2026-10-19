@@ -5,7 +5,7 @@
 Patch book and global-settings tool for the Behringer Pro-1 on Linux.
 
 ## Status
-Planning stage.
+Usable: the Cat Recipe Book (`docs/recipe-book.html`) draws the Pro-1 front panel and stores your recipes in the browser; the release zip has it as an offline file with a short manual. No plugin build yet.
 
 <p align="center">
   <a href="https://ko-fi.com/studio87"><img src="https://img.shields.io/badge/Support_Studio_87-on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Studio 87 on Ko-fi"></a>

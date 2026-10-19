@@ -5,10 +5,10 @@
 - [ ] Enable GitHub Pages (owner: Settings, Pages, /docs)
 - [ ] Check panel scale of glide and LFO knobs on hardware
 - [ ] GitHub Action to validate submitted patches and rebuild index.json
-- [ ] Panel artwork closer to the real front panel
+- [x] Panel artwork at the real front panel proportions (docs/recipe-book.html, the Cat Recipe Book)
 - [ ] Sequencer note data in the format (v2)
 - [ ] Same book for the Behringer Cat
-- [ ] Recall sheet view with the on-screen panel (visual only)
+- [x] Recall sheet view (Patch sheet in the recipe book)
 - [ ] Send global settings by SysEx (note priority, pitch bend range, clock out) after capture check
-- [ ] Export and import patch files (our own format, documented)
+- [x] Export and import recipe files (recipe book format; the v1 patch format stays for the simple page)
 - [ ] Plugin and standalone builds on cat-ui

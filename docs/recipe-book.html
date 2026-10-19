@@ -1,0 +1,940 @@
+<!doctype html><html data-synth="pro1"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cat Recipe Book (Studio 87)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: top bar (synth picker, name, save/export), optional recipe shelf on the left, the synth panel drawn at the hardware's own proportions and scaled to fit, notes and cables below. */
+:root {
+  --bg: #1b1b3f;
+  --shelf: #232352;
+  --card: #2C2C62;
+  --line: #43437f;
+  --fg: #f3f1e6;
+  --dim: #aeb0d6;
+  --yellow: #FEEF5E;
+  --sky: #6CC9F5;
+  --blue: #398BC4;
+  --pink: #D94995;
+  --panel: #151517;
+  --panel-line: #e9e6d8;
+  --panel-fg: #f0eee3;
+  --wood: #6a3b22;
+  --font-ui: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--font-ui); padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.brand { font: 700 26px/1 var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--yellow); margin-right: 8px; }
+.brand small { display: block; font: 500 12px var(--font-data); color: var(--dim); letter-spacing: .02em; text-transform: none; margin-top: 4px; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field label { font: 600 11px var(--font-label); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.field select, .field input { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; min-width: 0; }
+#synthSel { min-width: 190px; font-weight: 600; }
+#presetName { min-width: 230px; }
+.spacer { flex: 1; }
+.btn { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; font-weight: 600; }
+.btn:hover { border-color: var(--sky); }
+.btn.primary { background: var(--yellow); color: #1b1b3f; border-color: var(--yellow); }
+.btn.primary:hover { background: #fff27d; }
+.btn.danger { border-color: var(--pink); color: #ff9ccb; }
+.btn.small { padding: 4px 8px; font-size: 13px; }
+.chip { font: 500 12px var(--font-data); padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+.chip.dirty { border-color: var(--yellow); color: var(--yellow); }
+
+.main { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+
+.shelf[hidden] { display: none; }
+.shelf { background: var(--shelf); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.shelf h2 { margin: 0 !important; }
+.shelf h2, .card h2 { font: 700 13px var(--font-label); letter-spacing: .14em; text-transform: uppercase; color: var(--sky); margin: 0 0 8px; }
+.shelf ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 200px; min-width: 0; }
+.shelf li button { text-align: left; background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; display: flex; flex-direction: row; align-items: baseline; gap: 8px; }
+.shelf li button:hover { background: var(--card); }
+.shelf li.on button { background: var(--card); border-color: var(--sky); }
+.shelf li .n { font-weight: 600; overflow-wrap: anywhere; }
+.shelf li .m { font: 400 11px var(--font-data); color: var(--dim); }
+.shelf .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.empty { color: var(--dim); font-size: 13px; padding: 4px 2px; }
+
+.stage { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.screens { display: grid; grid-template-columns: 1.2fr 1.2fr 2fr; gap: 8px; }
+.screen { background: #0e1a12; border: 1px solid #2d4a37; border-radius: 6px; padding: 6px 10px; font-family: var(--font-data); color: #9dffb0; min-height: 44px; min-width: 0; }
+.screen b { display: block; font-weight: 400; font-size: 10px; color: #5fa36e; letter-spacing: .1em; text-transform: uppercase; }
+.screen span { font-size: 15px; overflow-wrap: anywhere; }
+.estbar { background: #3a3414; border: 1px solid #8a7a1c; color: #fff3a6; border-radius: 6px; padding: 8px 12px; font-size: 13px; }
+.touch { font: 500 13px var(--font-data); color: #9dffb0; background: #0e1a12; border: 1px solid #2d4a37; border-radius: 6px; padding: 3px 10px; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+.infodot { font: 600 11px var(--font-label); letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 10px; padding: 2px 8px; color: var(--dim); cursor: help; }
+.belowbar { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; justify-content: space-between; }
+.belowbar .note { flex: 1 1 260px; }
+.sizebar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; font-size: 13px; color: var(--dim); }
+.sizebar input[type=range] { width: min(260px, 50vw); accent-color: var(--yellow); }
+.sizebar output { font: 500 13px var(--font-data); color: var(--fg); min-width: 48px; }
+
+.viewport { overflow: auto; border-radius: 8px; max-width: 100%; }
+.sizer { position: relative; }
+.canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: var(--panel); border-radius: 6px; color: var(--panel-fg); box-shadow: inset 0 0 0 2px #2a2a2e; overflow: hidden; --cap:#1d1d20; --capline:#cfcfd4; --ptr:#fff; --tick:#bdbdc2; --sub:#c9c6b6; --val:#9dffb0; --on:#FEEF5E; }
+.wood { position: absolute; top: 0; bottom: 0; width: 44px; background: repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 1px,rgba(0,0,0,.06) 1px 2px,rgba(0,0,0,.14) 2px 3px,rgba(0,0,0,.05) 3px 5px,rgba(0,0,0,.2) 5px 6px,rgba(0,0,0,.08) 6px 8px),linear-gradient(90deg,#3d2210 0%,#7b4a26 40%,#5a3419 75%,#3d2210 100%); box-shadow: inset -4px 0 8px rgba(0,0,0,.6), inset 0 0 0 1px #000; }
+.wood::before, .wood::after { content: ""; position: absolute; left: 50%; width: 11px; height: 11px; margin-left: -5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8a8a90, #2a2a2e 70%); box-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.wood::before { top: 16px; } .wood::after { bottom: 16px; }
+.wood.l { left: 0; border-radius: 8px 0 0 8px; } .wood.r { right: 0; transform: scaleX(-1); border-radius: 8px 0 0 8px; }
+.box { position: absolute; border: 1.5px solid var(--panel-line); border-radius: 12px; }
+.box > h3 { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); margin: 0; background: var(--panel); padding: 0 10px; font: 700 16px var(--font-label); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.st { position: absolute; font: 700 13px var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--panel-fg); white-space: nowrap; transform: translateX(-50%); }
+.st.dim { color: var(--sub); font-weight: 600; font-size: 12px; }
+.jack { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle, #050505 38%, #8d8d93 40%, #c5c5ca 62%, #55555a 66%); transform: translate(-50%, -50%); }
+.jlab { position: absolute; font: 600 11px var(--font-label); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; transform: translateX(-50%); color: var(--panel-fg); }
+.din { position: absolute; width: 62px; height: 62px; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle, #050505 0 55%, #8d8d93 57%, #c5c5ca 80%, #55555a 84%); }
+.din i { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #c9c9ce; left: 50%; top: 50%; margin: -3px; }
+.usbb { position: absolute; width: 50px; height: 56px; transform: translate(-50%, -50%); background: linear-gradient(#c9c9ce, #8d8d93); border: 2px solid #55555a; border-radius: 4px; }
+.usbb::after { content: ""; position: absolute; left: 8px; right: 8px; top: 9px; bottom: 9px; background: #050505; border-radius: 2px; }
+.cathead { position: absolute; transform: translate(-50%, -50%); }
+.ctl.lt .lbl { order: -1; margin: 0 0 3px; }
+.rect { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; font: 600 12px/1.1 var(--font-label); letter-spacing: .05em; text-transform: uppercase; overflow: hidden; }
+.led { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #b3201a; box-shadow: 0 0 8px #ff3b2f; transform: translate(-50%, -50%); }
+.led.off { background: #3a1210; box-shadow: none; }
+.wire { position: absolute; height: 2px; background: var(--panel-fg); transform: translateY(-50%); }
+.logo { position: absolute; transform: translate(-50%, -50%); font: 700 40px/1 var(--font-label); letter-spacing: .04em; color: var(--panel-fg); white-space: nowrap; }
+.logo small { display: block; font: 500 14px var(--font-label); letter-spacing: .12em; text-align: center; margin-top: 4px; color: var(--sub); }
+
+.ctl { position: absolute; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.ctl .lbl { white-space: nowrap; font: 600 13px/1.05 var(--font-label); letter-spacing: .05em; text-transform: uppercase; text-align: center; margin-top: 1px; }
+.ctl .val { font: 400 11px var(--font-data); color: var(--val); height: 14px; }
+.ctl .ends { width: 76px; display: flex; justify-content: space-between; font: 600 10px var(--font-label); letter-spacing: .03em; color: var(--sub); text-transform: uppercase; margin-top: -4px; height: 11px; }
+.knob { width: 76px; height: 76px; touch-action: none; cursor: ns-resize; border-radius: 50%; }
+.knob .cap { fill: var(--cap); stroke: var(--capline); stroke-width: 1.2; }
+.knob.p1 .cap { stroke: #4b4b52; stroke-width: 1.5; }
+.knob .ptr { stroke: var(--ptr); stroke-width: 3; stroke-linecap: round; }
+.knob .tk { fill: var(--panel-fg); font: 500 8px var(--font-label); text-anchor: middle; dominant-baseline: central; }
+.knob .tick { stroke: var(--tick); stroke-width: 1.3; }
+.badge { position: absolute; top: 0; right: 4px; width: 14px; height: 14px; border-radius: 50%; font: 700 9px/14px var(--font-data); text-align: center; pointer-events: none; }
+.badge.est { background: transparent; border: 1.5px dashed var(--on); }
+.badge.low { background: var(--on); color: #1b1b3f; }
+
+.sw { position: absolute; width: 84px; display: flex; flex-direction: column; align-items: center; }
+.sw .tag { font: 600 11px var(--font-label); letter-spacing: .05em; text-transform: uppercase; color: var(--sub); line-height: 13px; height: 13px; text-align: center; white-space: nowrap; display: flex; align-items: center; justify-content: center; }
+.sw .tag svg, .lbl svg { width: 22px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.sw .tag.on { color: var(--on); }
+.sw .body { position: relative; display: flex; align-items: stretch; gap: 3px; }
+.sw .slot { position: relative; width: 22px; background: #26262a; border: 1px solid #55555c; border-radius: 4px; padding: 0; }
+.sw .lever { position: absolute; left: 2px; right: 2px; height: 20px; border-radius: 3px; background: repeating-linear-gradient(#8e8e96 0 2px, #6c6c74 2px 4px); border: 1px solid #9a9aa2; transition: top .08s; }
+.sw.unset .lever { background: #3a3a40; border-style: dashed; opacity: .75; }
+.sw .side { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; }
+.sw .side.l { align-items: flex-end; }
+.sw .q { font: 700 10px var(--font-data); color: var(--on); height: 11px; line-height: 11px; }
+.sw .lbl { white-space: nowrap; font: 600 13px/1.05 var(--font-label); letter-spacing: .05em; text-transform: uppercase; text-align: center; margin-top: 2px; }
+
+.sld { position: absolute; width: 64px; display: flex; flex-direction: column; align-items: center; }
+.sld .val { font: 400 11px var(--font-data); color: var(--val); height: 14px; }
+.sld .rail { position: relative; width: 64px; touch-action: none; cursor: ns-resize; }
+.sld .groove { position: absolute; left: 25px; width: 14px; top: 0; bottom: 0; background: #050505; border-radius: 7px; }
+.sld .marks { position: absolute; left: 43px; top: 6px; bottom: 6px; width: 16px; background:
+  linear-gradient(#bdbdc2,#bdbdc2) 0 0/100% 2px no-repeat, linear-gradient(#bdbdc2,#bdbdc2) 3px 17%/10px 2px no-repeat, linear-gradient(#bdbdc2,#bdbdc2) 3px 34%/10px 2px no-repeat,
+  linear-gradient(#bdbdc2,#bdbdc2) 0 50%/100% 2px no-repeat, linear-gradient(#bdbdc2,#bdbdc2) 3px 67%/10px 2px no-repeat, linear-gradient(#bdbdc2,#bdbdc2) 3px 84%/10px 2px no-repeat, linear-gradient(#bdbdc2,#bdbdc2) 0 100%/100% 2px no-repeat; opacity: .7; }
+.sld .cap { position: absolute; left: 16px; width: 32px; height: 32px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,.6); }
+.sld .cap.red { background: radial-gradient(circle at 40% 35%, #ff5a4d, #d41712 70%); }
+.sld .cap.white { background: radial-gradient(circle at 40% 35%, #fff, #d8d8d8 70%); }
+.sld .cap.grey { background: radial-gradient(circle at 40% 35%, #c9c9c9, #8c8c8c 70%); }
+.sld .rail:focus-visible { outline: 2px solid var(--yellow); }
+.sld .lbl { font: 600 13px/1.05 var(--font-label); letter-spacing: .05em; text-transform: uppercase; text-align: center; margin-top: 3px; }
+.sld .endl { position: absolute; left: 66px; font: 600 11px var(--font-label); color: var(--sub); white-space: nowrap; text-transform: uppercase; }
+.sld .endl.t { top: -2px; } .sld .endl.b { bottom: -2px; } .sld .endl.m { top: 50%; transform: translateY(-50%); }
+.sld .endl.lt { left: auto; right: 66px; }
+
+.card { background: var(--shelf); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+details.card > summary { cursor: pointer; list-style: none; }
+details.card > summary h2 { margin: 0; }
+details.card[open] > summary { margin-bottom: 8px; }
+.drawers { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.drawer { flex: 0 0 auto; }
+.drawer[open] { flex: 1 1 280px; }
+.drawer.wide2[open] { flex: 2.4 1 440px; }
+.drawer.wide3[open] { flex: 1 1 100%; }
+.seqbar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 8px; font-size: 13px; color: var(--dim); }
+.seqbar select { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+.rollwrap { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.roll { display: grid; grid-template-columns: 58px repeat(16, minmax(24px, 1fr)); gap: 1px; min-width: 520px; }
+.roll > * { min-width: 0; }
+.roll .rl { font: 500 11px var(--font-data); color: var(--dim); padding: 0 6px; display: flex; align-items: center; justify-content: flex-end; height: 15px; background: var(--shelf); position: sticky; left: 0; z-index: 1; }
+.roll .rl.c { color: var(--fg); font-weight: 600; }
+.roll .hd { position: sticky; top: 0; z-index: 2; background: var(--shelf); font: 600 11px var(--font-data); color: var(--dim); text-align: center; height: 17px; line-height: 17px; }
+.roll .cell { height: 15px; padding: 0; border: 0; border-radius: 0; background: var(--card); }
+.roll .cell.blk { background: #25254f; }
+.roll .cell:hover { background: var(--line); }
+.roll .cell.on { background: var(--yellow); }
+.roll .cell.off { opacity: .35; }
+.flags { display: grid; grid-template-columns: 58px repeat(16, minmax(24px, 1fr)); gap: 1px; min-width: 520px; margin-top: 6px; }
+.flags .fl { font: 600 11px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--dim); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.flags button { height: 22px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--card); }
+.flags button.on.a { background: var(--pink); border-color: var(--pink); }
+.flags button.on.s { background: var(--sky); border-color: var(--sky); }
+.flags button.on.t { background: var(--dim); border-color: var(--dim); }
+.flags button.off { opacity: .35; }
+details.card > summary h2::before { content: "\25B8"; display: inline-block; width: 1.1em; color: var(--yellow); }
+details.card[open] > summary h2::before { content: "\25BE"; }
+.meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+.meta .field.wide { grid-column: 1 / -1; }
+textarea { width: 100%; min-height: 56px; resize: vertical; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: 13px/1.45 var(--font-data); }
+.cables { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 5px 12px; }
+.cable { display: grid; grid-template-columns: 14px 1fr 12px 1fr; gap: 4px; align-items: center; }
+.cable i { font: 700 12px var(--font-data); font-style: normal; color: var(--yellow); text-align: center; }
+.cable select { font-size: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; min-width: 0; width: 100%; }
+.cable .arr { color: var(--dim); text-align: center; }
+.opts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13px; color: var(--dim); }
+.opts label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.note { font-size: 12px; color: var(--dim); }
+
+.bubble { position: fixed; z-index: 50; max-width: 260px; background: var(--yellow); color: #1b1b3f; font: 500 13px/1.35 var(--font-ui); padding: 7px 10px; border-radius: 6px; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--sky); color: #10203a; font-weight: 600; padding: 9px 16px; border-radius: 8px; z-index: 60; max-width: 90vw; }
+.toast.err { background: var(--pink); color: #fff; }
+.dlg { position: fixed; inset: 0; background: rgba(8,8,24,.7); z-index: 55; display: grid; place-items: center; padding: 16px; }
+.dlg > div { background: var(--shelf); border: 1px solid var(--line); border-radius: 10px; padding: 16px; width: min(640px, 100%); display: flex; flex-direction: column; gap: 10px; }
+.dlg h2 { margin: 0; font: 700 16px var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--yellow); }
+
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } .screens { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .sw .lever { transition: none; } }
+</style>
+
+<div class="top">
+  <div class="brand">Cat Recipe Book<small>patch recipes for synths without patch memory</small></div>
+  <div class="field"><label for="synthSel">Synth</label><select id="synthSel"></select></div>
+  <div class="field"><label for="presetName">Recipe name</label><input id="presetName" maxlength="20" autocomplete="off"></div>
+  <span class="chip" id="dirtyChip">saved</span>
+  <div class="spacer"></div>
+  <button class="btn primary" id="saveBtn" data-tip="Save this recipe in the app's local library (this browser).">Save</button>
+  <button class="btn" id="saveCopyBtn" data-tip="Save as a new recipe, keeping the original.">Save as copy</button>
+  <button class="btn" id="exportBtn" data-tip="Save a file anywhere: a folder on a drive, or a cloud-synced folder like OneDrive or Nextcloud.">Export file…</button>
+</div>
+
+<div class="main" id="main">
+  <aside class="shelf" id="shelf">
+    <h2>Recipes</h2>
+    <ul id="list"></ul>
+    <span class="touch" id="scParam" aria-live="polite">move a knob</span>
+    <div class="row">
+      <button class="btn small" id="newBtn" data-tip="Start from an empty panel (everything at 0, switches unset).">New</button>
+      <button class="btn small" id="importBtn" data-tip="Load recipes from a .json file you exported before.">Import…</button>
+      <button class="btn small" id="exportAllBtn" data-tip="Save every recipe of every synth into one file.">Export all…</button>
+      <button class="btn small danger" id="delBtn">Delete</button>
+    </div>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    <label class="opts"><input type="checkbox" id="tipsOn" checked> Info bubbles</label>
+  </aside>
+
+  <section class="stage" id="stage">
+    <div class="estbar" id="estBar" hidden></div>
+    <div class="viewport" id="viewport"><div class="sizer" id="sizer"><div class="canvas" id="canvas"></div></div></div>
+    <div class="drawers" id="below">
+    <div class="sizebar" id="sizebar">
+      <label for="zoom">Panel size</label>
+      <input type="range" id="zoom" min="35" max="200" step="1" value="100">
+      <output id="zoomOut" for="zoom">100%</output>
+      <button class="btn small" id="fitBtn" data-tip="Scale the panel to the width of this window, and keep fitting when the window is resized.">Fit width</button>
+      <button class="btn small" id="oneBtn" data-tip="Panel at its native drawing size.">100%</button>
+      <span class="infodot" data-tip="Switch levers: the first label of a pair is drawn at the top. Check the lever direction on your synth once; on and off positions are not assumed." tabindex="0">? levers</span>
+      <label><input type="checkbox" id="shelfOn" checked> Show recipe list</label>
+    </div>
+      <details class="card drawer" id="infoCard" data-k="info">
+        <summary><h2>Recipe info (click to open)</h2></summary>
+        <div class="meta">
+          <div class="field"><label for="author">Author</label><input id="author" maxlength="15" autocomplete="off"></div>
+          <div class="field"><label for="category">Category</label>
+            <select id="category"><option>Bass</option><option>Lead</option><option>Pad</option><option>Pluck</option><option>FX</option><option>Drum</option><option>Other</option></select></div>
+          <div class="field wide"><label for="notes">Notes (how it sounds, how to play it, what to check)</label><textarea id="notes"></textarea></div>
+        </div>
+      </details>
+      <details class="card drawer wide2" id="cablesCard" data-k="cables">
+        <summary><h2>Patch cables (click to open)</h2></summary>
+        <div class="cables" id="cables"></div>
+      </details>
+      <details class="card drawer wide3" id="seqCard" data-k="seq" hidden>
+        <summary><h2>Sequence: piano roll (click to open)</h2></summary>
+        <div id="seqBox"></div>
+      </details>
+      <details class="card drawer" id="sheetCard" data-k="sheet">
+        <summary><h2>Patch sheet (click to open)</h2></summary>
+        <div class="opts" style="margin-bottom:8px"><button class="btn small" id="copySheet">Copy as text</button><button class="btn small" id="saveSheet">Save text file…</button></div>
+      <textarea id="sheet" readonly style="min-height:160px"></textarea>
+    </details>
+    </div>
+  </section>
+</div>
+<p class="note" style="margin-top:14px">Studio 87 · Cat Recipe Book · free and open source (AGPL-3.0-or-later) · everything stays in this browser, nothing is sent anywhere. Not affiliated with or endorsed by Behringer.</p>
+
+<script>
+(function () {
+"use strict";
+
+/* ---------- Icons used on panel labels ---------- */
+const ICON = {
+  sine: "M1 6 C4 -1 8 -1 11 6 S18 13 21 6", square: "M1 10 V3 H8 V10 H14 V3 H21", saw: "M1 10 L7 2 V10 L14 2 V10 L21 2", tri: "M1 10 L6 2 L11 10 L16 2 L21 10",
+  pulse: "M1 10 H3 V2 H6 V10 H11 V2 H14 V10 H18 V2 H21", adsr: "M1 11 L5 2 L9 6 H15 L20 11", ar: "M1 11 L4 2 H17 L21 11",
+  pwn: "M1 10 H4 V3 H8 V10 H21", pww: "M1 10 H3 V3 H15 V10 H21"
+};
+const icon = id => '<svg viewBox="0 0 22 12" aria-hidden="true"><path d="' + ICON[id] + '"/></svg>';
+const rich = t => (typeof t === "string" && t[0] === "@") ? icon(t.slice(1)) : String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const plain = t => (typeof t === "string" && t[0] === "@") ? { sine:"sine", square:"square", saw:"saw", tri:"triangle", pulse:"pulse", adsr:"ADSR env", ar:"AR env", pwn:"narrow", pww:"wide" }[t.slice(1)] : t;
+
+/* ---------- Control constructors (positions are the centre of the knob, lever slot or slider, in panel pixels) ---------- */
+const NUM = [0,1,2,3,4,5,6,7,8,9,10];
+function knob(id, label, sec, cx, cy, o) { return Object.assign({ t: "knob", id, label, sec, cx, cy, min: 0, max: 10, def: 0, step: .1, ticks: NUM, nums: true, tip: label }, o || {}); }
+function sw(id, label, sec, cx, cy, pos, o) { return Object.assign({ t: "sw", id, label, sec, cx, cy, pos, tip: plain(label) }, o || {}); }
+function sld(id, label, sec, cx, cy, o) { return Object.assign({ t: "sld", id, label, sec, cx, cy, min: 0, max: 10, def: 0, step: .1, h: 150, cap: "white", tip: label }, o || {}); }
+const BIP = { min: -5, max: 5, def: 0, ticks: [-5,-4,-3,-2,-1,0,1,2,3,4,5], fmt: v => (v > 0 ? "+" : "") + v.toFixed(1) };
+const OCT = { min: 0, max: 3, def: 0, ticks: [0,1,2,3] };
+const ONOFF = ["ON", "OFF"];
+const ENVSEL = ["@adsr", "@ar", "VCO 1"]; // envelope selector icons as drawn on the CAT panel
+const WAVESEL = ["@sine", "@square", "S+H"];
+
+/* ---------- Pro-1 (from the front-panel photo; origin = top-left of the front plate) ---------- */
+const OX = 18, OY = 185;
+const P = (x, y) => [x - OX, y - OY];
+function pbox(id, title, x, y, w, h) { const [a, b] = P(x, y); return { id, title, x: a, y: b, w, h }; }
+function pk(id, label, sec, x, y, o) { const [a, b] = P(x, y); return knob(id, label, sec, a, b, o); }
+function ps(id, label, sec, x, y, pos, o) { const [a, b] = P(x, y); return sw(id, label, sec, a, b, pos, o); }
+const PRO1 = {
+  id: "pro1", name: "Behringer Pro-1", W: 1964, H: 618, wood: 44, kind: "p1",
+  note: "Pro-1 has no patch memory and no MIDI control of its sounds. This panel is a written recipe. Layout copied from the Behringer front-panel photo.",
+  boxes: [
+    pbox("mod","Modulation",85,225,287,540), pbox("oscA","Oscillator A",387,297,525,146), pbox("mix","Mixer",927,297,371,146), pbox("filt","Filter",1313,297,490,306),
+    pbox("oscB","Oscillator B",387,457,656,146), pbox("glide","Glide",1058,457,240,146), pbox("lfo","LFO/Clock",387,617,321,146), pbox("seq","Sequencer",722,617,158,146),
+    pbox("arp","Arp",895,617,95,146), pbox("mode","Mode",1005,617,293,146), pbox("amp","Amplifier",1313,617,490,146)
+  ],
+  ctrls: [
+    pk("modFilEnvAmt","Amount","Modulation",150,322,{tip:"Modulation source: filter envelope, amount."}), ps("modFilEnvRoute","Route","Modulation",245,312,["WHEEL","DIRECT"],{tip:"Route switch for the filter envelope source: WHEEL or DIRECT."}),
+    pk("modOscBAmt","Amount","Modulation",150,495,{tip:"Modulation source: oscillator B, amount."}), ps("modOscBRoute","Route","Modulation",245,485,["WHEEL","DIRECT"],{tip:"Route switch for the oscillator B source: WHEEL or DIRECT."}),
+    pk("modLfoAmt","Amount","Modulation",150,667,{tip:"Modulation source: LFO, amount."}), ps("modLfoRoute","Route","Modulation",245,658,["WHEEL","DIRECT"],{tip:"Route switch for the LFO source: WHEEL or DIRECT."}),
+    ps("toAFreq","Osc A freq","Modulation",322,288,["WH","OFF","DIR"],{side:"l"}), ps("toAPW","Osc A PW","Modulation",330,390,["WH","OFF","DIR"],{side:"l"}),
+    ps("toBFreq","Osc B freq","Modulation",322,491,["WH","OFF","DIR"],{side:"l"}), ps("toBPW","Osc B PW","Modulation",330,592,["WH","OFF","DIR"],{side:"l"}), ps("toFilter","Filter","Modulation",330,704,["WH","OFF","DIR"],{side:"l"}),
+
+    pk("aFreq","Frequency","Oscillator A",452,358,Object.assign({tip:"Oscillator A fine frequency, scale 5 to 0 to 5 on the panel."},BIP)), pk("aOct","Octave","Oscillator A",572,358,Object.assign({tip:"Oscillator A octave."},OCT)),
+    ps("aSaw","@saw","Oscillator A",655,360,ONOFF,{name:"Osc A saw"}), ps("aPulse","@pulse","Oscillator A",713,360,ONOFF,{name:"Osc A pulse"}),
+    pk("aPW","Pulse width","Oscillator A",798,358,{tip:"Oscillator A pulse width."}), ps("aSync","Sync","Oscillator A",880,358,["SYNC","OFF"],{tip:"Oscillator A sync."}),
+
+    pk("mA","Osc A","Mixer",995,358,{tip:"Mixer level of oscillator A."}), pk("mB","Osc B","Mixer",1112,358,{tip:"Mixer level of oscillator B."}), pk("mN","Noise / ext","Mixer",1228,358,{tip:"Mixer level of noise or external input."}),
+
+    pk("cutoff","Cutoff","Filter",1380,358,{tip:"Filter cutoff."}), pk("res","Resonance","Filter",1498,358,{tip:"Filter resonance."}), pk("fEnvAmt","Env amount","Filter",1618,358,{tip:"How much the filter envelope moves the cutoff."}), pk("kbdAmt","Kbd amount","Filter",1736,358,{tip:"How much the keyboard note moves the cutoff."}),
+    pk("fA","Attack","Filter",1380,518,{tip:"Filter envelope attack."}), pk("fD","Decay","Filter",1498,518,{tip:"Filter envelope decay."}), pk("fS","Sustain","Filter",1618,518,{tip:"Filter envelope sustain level."}), pk("fR","Release","Filter",1736,518,{tip:"Filter envelope release."}),
+
+    pk("bFreq","Frequency","Oscillator B",452,518,Object.assign({tip:"Oscillator B fine frequency, scale 5 to 0 to 5 on the panel."},BIP)), pk("bOct","Octave","Oscillator B",572,518,Object.assign({tip:"Oscillator B octave."},OCT)),
+    ps("bSaw","@saw","Oscillator B",655,510,ONOFF,{name:"Osc B saw"}), ps("bTri","@tri","Oscillator B",713,510,ONOFF,{name:"Osc B triangle"}), ps("bPulse","@pulse","Oscillator B",773,510,ONOFF,{name:"Osc B pulse"}),
+    pk("bPW","Pulse width","Oscillator B",838,518,{tip:"Oscillator B pulse width."}), ps("bLoFreq","Lo freq","Oscillator B",915,510,["LO FREQ","NORMAL"],{tip:"Oscillator B low frequency mode."}), ps("bKybd","Kybd","Oscillator B",985,510,["KYBD","OFF"],{tip:"Oscillator B keyboard tracking."}),
+
+    pk("glideRate","Rate","Glide",1148,518,{tip:"Glide time."}), ps("glideMode","Mode","Glide",1230,510,["AUTO","NORMAL"],{tip:"Glide mode switch: AUTO or NORMAL."}),
+
+    pk("lfoFreq","Frequency","LFO/Clock",440,678,{tip:"LFO rate."}), ps("lfoSaw","@saw","LFO/Clock",537,668,ONOFF,{name:"LFO saw"}), ps("lfoTri","@tri","LFO/Clock",597,668,ONOFF,{name:"LFO triangle"}), ps("lfoPulse","@pulse","LFO/Clock",655,668,ONOFF,{name:"LFO pulse"}),
+    ps("seqSel","Seq","Sequencer",775,668,["SEQ 1","OFF","SEQ 2"],{side:"l",tip:"Sequencer select: SEQ 1, OFF, SEQ 2."}), ps("seqRec","Rec/play","Sequencer",840,668,["RECORD","PLAY"],{tip:"Sequencer record or play."}),
+    ps("arp","Arp","Arp",940,668,["UP","OFF","UP/DOWN"],{tip:"Arpeggiator: UP, OFF, UP/DOWN."}),
+    ps("poly","Voice","Mode",1040,668,["POLY","MONO"],{tip:"Voice mode: POLY or MONO."}), ps("retrig","Retrig","Mode",1108,668,["RETRIG","NORMAL"]), ps("repeat","Rpt/ext","Mode",1176,668,["REPEAT","NORMAL"]), ps("drone","Drone","Mode",1244,668,["DRONE","OFF"]),
+    pk("aA","Attack","Amplifier",1380,678,{tip:"Amplifier envelope attack."}), pk("aD","Decay","Amplifier",1498,678,{tip:"Amplifier envelope decay."}), pk("aS","Sustain","Amplifier",1618,678,{tip:"Amplifier envelope sustain level."}), pk("aR","Release","Amplifier",1736,678,{tip:"Amplifier envelope release."}),
+    pk("tune","Master tune","Master",1872,518,Object.assign({tip:"Master tune, scale 5 to 0 to 5 on the panel."},BIP)), pk("volume","Volume","Master",1872,678,{tip:"Output volume."})
+  ],
+  statics: (function () {
+    const out = [];
+    const j = [["MOD WH CV",605,"in"],["OSC CV",688,"in"],["GATE/CLK",770,"in"],["LFO CV",853,"in"],["LFO OUT",937,"out"],["KYBD CV",1020,"out"],["GATE",1103,"out"],["EXT",1186,"in"],["MIXER",1270,"out"],["CUTOFF CV",1353,"in"],["RESO CV",1436,"in"],["FILTER ENV",1519,"out"],["AMP ENV",1602,"out"],["PHONES",1685,"out"],["AUDIO OUT",1768,"out"]];
+    j.forEach(a => { const [x, y] = P(a[1], 270); out.push({ k: "jack", x, y }); out.push({ k: "jlab", x, y: y - 40, text: (a[2] === "out" ? "▲ " : "▼ ") + a[0] }); });
+    out.push({ k: "wire", x: P(688, 270)[0], y: P(688, 270)[1], w: 82 }); out.push({ k: "wire", x: P(1020, 270)[0], y: P(1020, 270)[1], w: 83 });
+    const [lx, ly] = P(472, 255); out.push({ k: "logo", x: lx, y: ly, text: "PRO-1", small: "" });
+    out.push({ k: "st", x: P(200, 248)[0], y: P(200, 248)[1] - 10, text: "From", dim: 1 }); out.push({ k: "st", x: P(330, 248)[0], y: P(330, 248)[1] - 10, text: "To", dim: 1 });
+    out.push({ k: "st", x: P(1872, 440)[0], y: P(1872, 440)[1], text: "MIDI in", dim: 1 }); out.push({ k: "jack", x: P(1872, 372)[0], y: P(1872, 372)[1] });
+    out.push({ k: "led", x: P(1284, 640)[0], y: P(1284, 640)[1] });
+    return out;
+  })(),
+  cableSrc: ["Not connected","LFO CV Out","Keyboard CV Out","Gate Out","Mixer Out","Filter Env Out","Amp Env Out","Phones","Audio Out"],
+  cableDst: ["Not connected","Mod Wheel CV In","Osc CV In","Gate/Clock In","LFO CV In","Ext In","Cutoff CV In","Resonance CV In"]
+};
+
+/* ---------- Behringer CAT (from the front-panel render; image pixels x1.6) ---------- */
+const Z = 1.6, ZY = 2.0;
+function cb(id, title, x, y, w, h) { return { id, title, x: x * Z, y: y * ZY + 14, w: w * Z, h: h * ZY }; }
+function ck(id, label, sec, x, y, o) { return knob(id, label, sec, x * Z, y * ZY + 14, Object.assign({ nums: false, ticks: NUM }, o || {})); }
+function cs(id, label, sec, x, y, pos, o) { return sw(id, label, sec, x * Z, y * ZY + 14, pos, o); }
+function cl(id, label, sec, x, y, o) { return sld(id, label, sec, x * Z, y * ZY + 14, o); }
+const CAT = {
+  id: "cat", name: "Behringer CAT", W: 1860, H: 800, wood: 30, kind: "cat",
+  note: "Behringer CAT has MIDI and USB, but this book records the panel by hand. Values are slider and knob positions on a 0 to 10 scale (bottom to top, left to right), because the panel prints no numbers. Layout copied from the Behringer front-panel render. Icon-only selector positions are named by their icon.",
+  boxes: [
+    cb("io","I/O",22,10,221,112), cb("ctl","Performance",22,262,221,123),
+    cb("vco1","VCO 1",247,10,216,371), cb("vco2","VCO 2",467,10,165,371), cb("vcf","VCF",637,10,148,371),
+    cb("tg","Transient generators",790,113,208,268), cb("vca","VCA",1003,113,95,137), cb("noise","Noise level",1003,255,95,126),
+    cb("jin","Input",780,10,106,98), cb("jin2","",890,66,125,42), cb("jout","Output",890,10,210,52), cb("jph","",1020,66,80,42)
+  ],
+  ctrls: [
+    cl("pitchBend","Pitch bend","Performance",55,320,{min:-1,max:1,def:0,step:.05,cap:"red",h:140,ends:[["+1","t"],["0","m"],["-1","b"]],fmt:v=>(v>0?"+":"")+v.toFixed(2),tip:"Pitch bend slider, -1 to +1."}),
+    cs("octShift","Octave shift","Performance",100,314,["+2","0","-2"],{tip:"Octave shift: +2, 0, -2."}),
+    cl("glide","Glide","Performance",145,320,{cap:"red",h:140,ends:[["MAX","t","lt"],["MIN","b","lt"]],tip:"Glide time, MIN at the bottom, MAX at the top."}),
+    cl("lfoFreq","LFO freq","Performance",190,320,{cap:"red",h:140,ends:[["30Hz","t"],["0.03Hz","b"]],tip:"LFO frequency, 0.03 Hz at the bottom to 30 Hz at the top."}),
+
+    ck("v1Fine","Fine","VCO 1",285,70,{ends:["-","+"],tip:"VCO 1 fine tune."}), ck("v1Coarse","Coarse","VCO 1",350,70,{ends:["0.2Hz","2KHz"],tip:"VCO 1 coarse frequency, 0.2 Hz to 2 kHz."}),
+    cs("v1Kbd","Keyboard control","VCO 1",418,70,["POLY","OFF","MONO"],{tip:"VCO 1 keyboard control: POLY, OFF, MONO."}),
+    cs("v1ModASrc","Mod source","VCO 1",288,140,WAVESEL,{tip:"Selector above the first modulation depth knob: sine, square, S+H."}), cs("v1ModBSrc","Mod source","VCO 1",350,140,ENVSEL,{tip:"Selector above the second modulation depth knob: ADSR icon, AR icon, VCO 2 (printed VCO 2 on VCO 1)."}),
+    cs("v1PwSrc","PW source","VCO 1",418,140,["@sine","@adsr","DC"],{tip:"Pulse width source: sine, ADSR icon, DC."}),
+    ck("v1ModA","Mod depth","VCO 1",288,208,{tip:"Modulation depth for the first selector."}), ck("v1ModB","Mod depth","VCO 1",350,208,{tip:"Modulation depth for the second selector."}),
+    ck("v1PW","Pulse width","VCO 1",418,208,{ends:["@pwn","@pww"],tip:"Pulse width."}),
+    cl("v1Sub","Sub octave","VCO 1",288,305,{h:140,tip:"VCO 1 sub octave level."}), cl("v1Saw","@saw","VCO 1",332,305,{h:140,name:"VCO 1 saw level",tip:"VCO 1 sawtooth level."}),
+    cl("v1Tri","@tri","VCO 1",378,305,{h:140,name:"VCO 1 triangle level",tip:"VCO 1 triangle level."}), cl("v1Pulse","@pulse","VCO 1",422,305,{h:140,name:"VCO 1 pulse level",tip:"VCO 1 pulse level."}),
+
+    ck("v2Fine","Fine tune","VCO 2",510,70,{ends:["-","+"],tip:"VCO 2 fine tune."}), cs("v2Sync","Sync","VCO 2",583,70,["MODE A","OFF","MODE B"],{tip:"VCO 2 sync: MODE A, OFF, MODE B."}),
+    cs("v2ModASrc","Mod source","VCO 2",510,140,WAVESEL), cs("v2ModBSrc","Mod source","VCO 2",583,140,["@adsr","@ar","VCO 1"]),
+    ck("v2ModA","Mod depth","VCO 2",510,208), ck("v2ModB","Mod depth","VCO 2",583,208),
+    cl("v2Sub","Sub octave","VCO 2",500,305,{h:140}), cl("v2Square","@square","VCO 2",548,305,{h:140,name:"VCO 2 square level"}), cl("v2Saw","@saw","VCO 2",595,305,{h:140,name:"VCO 2 saw level"}),
+
+    cs("vcfVco1","VCO 1 audio","VCF",676,70,["ON","OFF"],{tip:"VCO 1 audio into the filter: ON or OFF."}), ck("vcfKbd","Keyboard control","VCF",745,70,{ends:["OFF","MAX"],tip:"Filter keyboard control, OFF to MAX."}),
+    cs("vcfModASrc","Mod source","VCF",676,140,WAVESEL), cs("vcfModBSrc","Mod source","VCF",742,140,["@adsr","@ar","VCO 1"]),
+    ck("vcfModA","Mod depth","VCF",676,208), ck("vcfModB","Mod depth","VCF",742,208),
+    cl("vcfFc","Fc","VCF",688,310,{cap:"red",h:130,tip:"Filter cutoff slider."}), cl("vcfQ","Q","VCF",732,310,{cap:"red",h:130,tip:"Filter resonance (Q) slider."}),
+
+    cl("tgA","A","Transient generators",826,175,{cap:"grey",h:110,name:"ADSR attack"}), cl("tgD","D","Transient generators",872,175,{cap:"grey",h:110,name:"ADSR decay"}),
+    cl("tgS","S","Transient generators",918,175,{cap:"grey",h:110,name:"ADSR sustain"}), cl("tgR","R","Transient generators",962,175,{cap:"grey",h:110,name:"ADSR release"}),
+    cl("arA","A","Transient generators",826,310,{cap:"grey",h:110,name:"AR attack"}), cl("arR","R","Transient generators",872,310,{cap:"grey",h:110,name:"AR release"}),
+    cs("adsrRepeat","ADSR repeat","Transient generators",917,266,["GATED","OFF","AUTO"],{tip:"ADSR repeat: GATED, OFF, AUTO."}), cs("shSrc","Sample + hold","Transient generators",917,332,["VCO 1","NOISE"],{tip:"Sample and hold source: VCO 1 or NOISE."}),
+    cl("lfoDelay","LFO delay","Transient generators",965,310,{cap:"grey",h:110,ends:[["5 SEC.","t","lt"],["0","b","lt"]],tip:"LFO delay, 0 at the bottom to 5 seconds at the top."}),
+
+    cs("vcaMode","VCA mode","VCA",1040,150,["@adsr","@ar","BYPASS"],{tip:"VCA control: ADSR icon, AR icon, BYPASS."}), ck("volume","Volume","VCA",1040,205,{ends:["",""],tip:"VCA volume."}),
+    cl("noise","Noise level","Noise level",1042,320,{h:120})
+  ],
+  statics: (function () {
+    const out = [];
+    const J = (x, y, text) => { out.push({ k: "jack", x: x * Z, y: y * ZY + 14 }); out.push({ k: "jlab", x: x * Z, y: y * ZY + 14 - 27, text }); };
+    const D = (k, x, y, text) => { out.push({ k, x: x * Z, y: y * ZY + 14 }); out.push({ k: "jlab", x: x * Z, y: y * ZY + 14 - 46, text }); };
+    D("usb", 62, 88, "USB"); D("din", 143, 88, "MIDI in"); D("din", 195, 88, "MIDI thru");
+    J(806,40,"VCO1 CV"); J(846,40,"Gate"); J(806,85,"VCO2 CV"); J(846,85,"VCF Fc"); J(910,85,"VCF Q"); J(950,85,"Ext audio"); J(990,85,"VCA CV");
+    J(915,38,"KB CV"); J(955,38,"Gate"); J(995,38,"ADSR"); J(1035,38,"AR"); J(1040,85,"Phones"); J(1080,85,"Main out");
+    out.push({ k: "cat", x: 133 * Z, y: 160 * ZY + 14, w: 130, h: 143 }); out.push({ k: "logo", x: 133 * Z, y: 218 * ZY + 14, text: "CAT", small: "electronic music synthesizer" });
+    out.push({ k: "led", x: 225 * Z, y: 300 * Z - 12 });
+    out.push({ k: "st", x: 1075 * Z, y: 26 * ZY + 14, text: "Power", dim: 1 }); out.push({ k: "led", x: 1075 * Z, y: 40 * ZY + 14 });
+    return out;
+  })(),
+  cableSrc: ["Not connected","KB CV out","Gate out","ADSR out","AR out","Phones","Main out"],
+  cableDst: ["Not connected","VCO1 CV in","Gate in","VCO2 CV in","VCF Fc in","VCF Q in","Ext audio in","VCA CV in"]
+};
+(function () { const XO = 24; CAT.boxes.forEach(b => b.x += XO); CAT.ctrls.forEach(c => c.cx += XO); CAT.statics.forEach(t => t.x += XO); })();
+
+/* ---------- Behringer TD-3-MO and TD-3 (from product photos; photo pixels x1.8). Sequencer area is drawn for orientation only. ---------- */
+const F = 1.8;
+function tk(id, label, sec, x, y, o) { return knob(id, label, sec, x * F, y * F, Object.assign({ nums: false, ticks: NUM, def: 0 }, o || {})); }
+function ts(id, label, sec, x, y, pos, o) { return sw(id, label, sec, x * F, y * F, pos, o); }
+function tb(id, title, x1, y1, x2, y2) { return { id, title, x: x1 * F, y: y1 * F, w: (x2 - x1) * F, h: (y2 - y1) * F }; }
+function R(x1, y1, x2, y2, o) { return Object.assign({ k: "rect", x: x1 * F, y: y1 * F, w: (x2 - x1) * F, h: (y2 - y1) * F }, o || {}); }
+function seqDeco(out, dy, bottom) {
+  const Y = y => y + dy, dark = "#1c1c1c", cream = "#f6e7b4", band = "#f2a41d", key = "#efc24f";
+  const T = (x, y, text, fs, dim) => out.push({ k: "st", x: x * F, y: Y(y) * F, text, dim: dim === false ? 0 : 1, fs: fs || 11 });
+  const led = (x, y) => out.push({ k: "led", x: x * F, y: Y(y) * F });
+  out.push(R(0, Y(296), 1000, bottom, { bg: band }));
+  // pitch mode block
+  out.push(R(116, Y(305), 230, Y(322), { bg: dark, tc: cream, text: "Pitch mode", fs: 11 }));
+  out.push(R(116, Y(322), 230, Y(468), { bg: key, bd: dark, r: 4 }));
+  led(138, 338); out.push(R(140, Y(352), 206, Y(380), { bg: cream, bd: dark, r: 4 })); T(173, 392, "Function", 12, false); led(138, 418); T(190, 418, "Normal mode", 10); T(150, 448, "Bar", 10);
+  // note bar, sync sources, keys
+  out.push(R(236, Y(305), 662, Y(322), { bg: dark }));
+  [["C", 258], ["D", 312], ["E", 367], ["F", 422], ["G", 476], ["A", 530], ["B", 585], ["C", 640], ["C#", 285], ["D#", 340], ["F#", 449], ["G#", 503], ["A#", 557]].forEach(a => out.push({ k: "st", x: a[1] * F, y: Y(307) * F, text: a[0], color: cream, fs: 11 }));
+  out.push(R(237, Y(322), 664, Y(468), { bg: key, bd: dark, r: 4 }));
+  [["INT", 258], ["MIDI", 312], ["USB", 367], ["TRIG", 422], ["1PPS", 476], ["2PPQ", 530], ["24PPQ", 585], ["48PPQ", 640]].forEach(a => T(a[1], 328, a[0], 10));
+  [285, 340, 449, 503, 557].forEach(x => out.push(R(x - 14, Y(345), x + 14, Y(398), { bg: dark, r: 3 })));
+  [["Del", 285], ["Ins", 340], ["Ch", 449], ["Copy", 503], ["Paste", 557]].forEach(a => out.push({ k: "st", x: a[1] * F, y: Y(378) * F, text: a[0], color: cream, fs: 10 }));
+  [258, 312, 367, 422, 476, 530, 585, 640].forEach((x, i) => {
+    led(x, 405); out.push(R(x - 15, Y(412), x + 15, Y(446), { bg: cream, bd: dark, r: 4 }));
+    T(x, 452, String(i + 1), 12, false);
+  });
+  T(205, 452, "Pattern", 11);
+  // selector row
+  [["", 258], ["Del", 312], ["Ins", 367], ["", 422], ["Ch", 476], ["Cpy", 530], ["Pst", 585], ["", 640]].forEach((a, i) => { out.push(R(a[1] - 14, Y(474), a[1] + 14, Y(490), { bg: dark, tc: cream, text: String(i + 1), fs: 11, r: 2 })); if (a[0]) T(a[1], 462, a[0], 9); });
+  T(205, 482, "Selector", 11);
+  // time mode block
+  out.push(R(672, Y(305), 885, Y(322), { bg: dark, tc: cream, text: "Time mode", fs: 11 }));
+  out.push(R(672, Y(322), 885, Y(468), { bg: key, bd: dark, r: 4 }));
+  led(780, 330); T(718, 352, "Transpose", 10); T(692, 366, "Down", 10); T(745, 366, "Up", 10);
+  T(830, 352, "Pattern section", 10); T(803, 366, "A", 10); T(858, 366, "B", 10);
+  [[692, "9", "Step"], [745, "0", "Rest"], [803, "100", "Accent"], [858, "200", "Slide"]].forEach(a => { led(a[0], 398); out.push(R(a[0] - 14, Y(410), a[0] + 14, Y(446), { bg: cream, bd: dark, r: 4 })); T(a[0], 380, a[2], 11, false); T(a[0], 452, a[1], 11, false); });
+  // left and right blocks
+  T(36, 312, "D.C.", 10); T(80, 312, "Bar reset", 10);
+  out.push(R(14, Y(322), 100, Y(376), { bg: key, bd: dark, r: 4 })); out.push(R(30, Y(338), 84, Y(360), { bg: cream, bd: dark, r: 3 })); T(57, 365, "Clear", 11, false); T(104, 345, "Rand", 10);
+  led(30, 392); out.push(R(14, Y(385), 110, Y(497), { bg: dark, r: 5 })); out.push(R(34, Y(418), 90, Y(470), { bg: cream, bd: dark, r: 3 })); out.push({ k: "st", x: 62 * F, y: Y(482) * F, text: "Start / Stop", color: cream, fs: 11 });
+  out.push(R(890, Y(305), 985, Y(385), { bg: key, bd: dark, r: 4 })); out.push(R(912, Y(335), 968, Y(362), { bg: cream, bd: dark, r: 3 })); T(935, 370, "Back", 11, false); T(900, 318, "Sync", 10); T(935, 312, "D.S.", 10);
+  out.push(R(890, Y(385), 985, Y(497), { bg: dark, r: 5 })); out.push(R(912, Y(410), 968, Y(455), { bg: cream, bd: dark, r: 3 })); out.push({ k: "st", x: 937 * F, y: Y(462) * F, text: "Write / Next", color: cream, fs: 11 }); out.push({ k: "st", x: 937 * F, y: Y(477) * F, text: "Tap", color: cream, fs: 11 });
+  T(450, 508, "Sequencer drawn for orientation only: use the Sequence piano roll below to save the pattern. Labels read from the product photo.", 12);
+}
+function grpSvg() {
+  const cx = 145, cy = 112, P = (r, d) => { const a = d * Math.PI / 180; return [(cx + r * Math.sin(a)).toFixed(1), (cy - r * Math.cos(a)).toFixed(1)]; };
+  let t = "";
+  for (let k = 0; k < 7; k++) { const d = -135 + 45 * k, i = P(40, d), o = P(47, d), l = P(62, d); t += '<line x1="' + i[0] + '" y1="' + i[1] + '" x2="' + o[0] + '" y2="' + o[1] + '" stroke="currentColor" stroke-width="2"/><text x="' + l[0] + '" y="' + (+l[1] + 6) + '" text-anchor="middle" font-size="17" font-weight="700">' + (k + 1) + "</text>"; }
+  ["I", "II", "III", "IV"].forEach((n, k) => { const d = -120 + 80 * k, l = P(92, d); t += '<text x="' + l[0] + '" y="' + (+l[1] + 5) + '" text-anchor="middle" font-size="14" font-weight="700" opacity=".85">' + n + "</text>"; });
+  const pe = P(30, -135);
+  return '<svg width="290" height="220" viewBox="0 0 290 220" aria-label="Track and pattern group selector (orientation only)" style="font-family:var(--font-label)" fill="currentColor"><g>' + t + '</g><circle cx="145" cy="112" r="32" style="fill:var(--cap);stroke:var(--capline)" stroke-width="2"/><line x1="145" y1="112" x2="' + pe[0] + '" y2="' + pe[1] + '" style="stroke:var(--ptr)" stroke-width="6" stroke-linecap="round"/></svg>';
+}
+function modeSvg() {
+  const L = [["WRITE", 188, 58], ["PLAY", 188, 88], ["PLAY", 188, 138], ["WRITE", 188, 168]];
+  let t = ""; L.forEach(n => { t += '<text x="' + n[1] + '" y="' + n[2] + '" text-anchor="end" font-size="14" font-weight="700">' + n[0] + "</text>"; });
+  t += '<path d="M194 54 H206 V84 H194 M206 69 H218" fill="none" stroke="currentColor" stroke-width="2"/><text x="224" y="74" font-size="14" font-weight="700">TRACK</text>';
+  t += '<path d="M194 134 H206 V164 H194 M206 149 H218" fill="none" stroke="currentColor" stroke-width="2"/><text x="224" y="154" font-size="14" font-weight="700">PATTERN</text>';
+  return '<svg width="290" height="220" viewBox="0 0 290 220" aria-label="Mode selector (orientation only)" style="font-family:var(--font-label)" fill="currentColor">' + t + '<circle cx="78" cy="112" r="42" style="fill:var(--cap);stroke:var(--capline)" stroke-width="2"/><line x1="78" y1="112" x2="104" y2="86" style="stroke:var(--ptr)" stroke-width="6" stroke-linecap="round"/></svg>';
+}
+const YEL_MO = { "--panel": "#f2a41d", "--panel-fg": "#1a1400", "--panel-line": "#1a1400", "--cap": "#121212", "--capline": "#000", "--ptr": "#ff4a3a", "--tick": "#1a1400", "--sub": "#4a3b00", "--val": "#6b0d00", "--on": "#b00000" };
+const YEL_TD = Object.assign({}, YEL_MO, { "--panel": "#f2a41d" });
+const TD3MO = {
+  id: "td3mo", seq: true, name: "Behringer TD-3-MO", W: 1800, H: 1040, wood: 0, kind: "td", labelTop: true, theme: YEL_MO,
+  note: "TD-3-MO sound settings live only on the panel (patterns are stored in the sequencer, not in this book). Values are knob positions on a 0 to 10 scale; Tune centre is 5. Layout copied from the Behringer product photo. Positions of the Accent sweep and Muffler switches were read from small print: confirm on your unit.",
+  boxes: [tb("tempo", "Tempo", 66, 166, 181, 292), tb("wave", "Wave", 184, 166, 244, 292), tb("grp", "Track / Pattern group", 247, 166, 412, 292), tb("mode", "Mode", 416, 166, 582, 292), tb("vol", "Volume", 822, 166, 940, 292)],
+  ctrls: [
+    tk("tune", "Tune", "Top row", 58, 130, { def: 5, tip: "Tune, centre 5." }), tk("cutoff", "Cutoff", "Top row", 143, 130, { tip: "Filter cutoff." }), tk("reso", "Resonance", "Top row", 217, 130, { tip: "Filter resonance." }),
+    tk("env", "Envelope", "Top row", 298, 130, { tip: "Envelope modulation amount." }), tk("decay", "Decay", "Top row", 381, 130, { tip: "Filter envelope decay." }), tk("accent", "Accent", "Top row", 457, 130, { tip: "Accent amount." }),
+    tk("softAtt", "Soft attack", "Top row", 617, 130, { tip: "Soft attack." }), tk("normDecay", "Normal", "Top row", 692, 130, { name: "Normal decay", tip: "Decay for normal notes." }), tk("accDecay", "Accent", "Top row", 750, 130, { name: "Accent decay", tip: "Decay for accented notes." }),
+    tk("fTrack", "Filter tracking", "Top row", 848, 130, { tip: "Filter tracking." }), tk("overdrive", "Overdrive", "Top row", 933, 130, { tip: "Overdrive." }),
+    ts("level", "Level", "Left", 37, 205, ["HIGH", "MID", "LOW"], { tip: "Output level switch: HIGH, MID, LOW." }), ts("subOsc", "Sub osc", "Left", 37, 275, ["ON", "OFF"], { tip: "Sub oscillator button." }),
+    tk("tempo", "", "Second row", 123, 235, { name: "Tempo", ends: ["SLOW", "FAST"], tip: "Tempo." }), ts("wave", "", "Second row", 213, 238, ["@saw", "@square"], { name: "Wave", tip: "Waveform: sawtooth or square." }),
+    tk("slideTime", "Slide time", "Second row", 617, 240, { tip: "Slide time." }), ts("sweepSpeed", "Sweep", "Second row", 672, 245, ["FAST", "NORM", "SLOW"], { name: "Sweep speed", tip: "Sweep speed: FAST, NORM, SLOW." }),
+    ts("accSweep", "Acc. sweep", "Second row", 735, 245, ["2", "1", "HIRES"], { name: "Accent sweep", tip: "Accent sweep switch (read from small print: 2, 1, HIRES)." }),
+    tk("filterFM", "Filter FM", "Second row", 786, 240, { tip: "Filter FM amount." }), tk("volume", "", "Second row", 868, 238, { name: "Volume", ends: ["MIN", "MAX"], tip: "Volume." }),
+    ts("muffler", "Muffler", "Right", 962, 215, ["2", "0"], { tip: "Muffler switch (2 or 0)." }), ts("accentBtn", "Accent", "Right", 962, 275, ["ON", "OFF"], { tip: "Accent button next to Muffler." })
+  ],
+  statics: (function () {
+    const out = [];
+    [["Filter in", 380], ["Filter FM in", 419], ["Filter CV in", 459], ["Accent in", 583], ["Slide in", 628], ["Gate in", 670], ["CV in", 712], ["Sync in", 755], ["Accent out", 795], ["Gate out", 838], ["CV out", 880], ["Filter out", 921], ["Phones", 960]].forEach(a => { out.push({ k: "jack", x: a[1] * F, y: 66 * F }); out.push({ k: "jlab", x: a[1] * F, y: 38 * F, text: a[0], fs: 9.5 }); });
+    out.push({ k: "logo", x: 190 * F, y: 40 * F, text: "TD-3-MO", small: "Modded Out Analog Bass Line Synthesizer" });
+    out.push({ k: "smile", x: 545 * F, y: 128 * F, w: 56 }); out.push({ k: "svg", x: 329 * F, y: 232 * F, svg: grpSvg() }); out.push({ k: "svg", x: 495 * F, y: 232 * F, svg: modeSvg() });
+    [617, 696, 750].forEach(x => out.push({ k: "led", x: x * F, y: 176 * F }));
+    out.push({ k: "st", x: 617 * F, y: 182 * F, text: "Gate", dim: 1, fs: 11 }); 
+    seqDeco(out, 0, 578); return out;
+  })(),
+  cableSrc: ["Not connected", "Accent out", "Gate out", "CV out", "Filter out", "Phones"],
+  cableDst: ["Not connected", "Filter in", "Filter FM in", "Filter CV in", "Accent in", "Slide in", "Gate in", "CV in", "Sync in"]
+};
+const TD3 = {
+  id: "td3", seq: true, name: "Behringer TD-3", W: 1800, H: 1000, wood: 0, kind: "td", labelTop: true, theme: YEL_TD,
+  note: "TD-3 sound settings live only on the panel (patterns are stored in the sequencer, not in this book). Values are knob positions on a 0 to 10 scale; Tune centre is 5. Layout copied from the Behringer product photo.",
+  boxes: [tb("tempo", "Tempo", 8, 160, 113, 290), tb("wave", "Waveform", 120, 160, 216, 290), tb("grp", "Track / Pattern group", 222, 160, 376, 290), tb("mode", "Mode", 382, 160, 576, 290), tb("dist", "Distortion", 783, 160, 875, 290), tb("vol", "Volume", 882, 160, 990, 290)],
+  ctrls: [
+    tk("tune", "Tune", "Top row", 47, 122, { def: 5, tip: "Tune, centre 5." }), tk("cutoff", "Cutoff", "Top row", 138, 122, { tip: "Filter cutoff." }), tk("reso", "Resonance", "Top row", 218, 122, { tip: "Filter resonance." }),
+    tk("env", "Envelope", "Top row", 298, 122, { tip: "Envelope modulation amount." }), tk("decay", "Decay", "Top row", 380, 122, { tip: "Filter envelope decay." }), tk("accent", "Accent", "Top row", 458, 122, { tip: "Accent amount." }),
+    tk("distortion", "Distortion", "Top row", 777, 122, { tip: "Distortion amount." }), tk("tone", "Tone", "Top row", 858, 122, { tip: "Tone." }), tk("level", "Level", "Top row", 938, 122, { tip: "Level." }),
+    tk("tempo", "", "Second row", 62, 230, { name: "Tempo", ends: ["SLOW", "FAST"], tip: "Tempo." }), ts("wave", "", "Second row", 168, 232, ["@saw", "@square"], { name: "Waveform", tip: "Waveform: sawtooth or square." }),
+    ts("distSw", "", "Second row", 829, 232, ["OFF", "ON"], { name: "Distortion switch", tip: "Distortion switch." }), tk("volume", "", "Second row", 937, 232, { name: "Volume", ends: ["MIN", "MAX"], tip: "Volume." })
+  ],
+  statics: (function () {
+    const out = [];
+    [["Filter in", 520, "\u25BC"], ["Sync in", 568, "\u25BC"], ["CV out", 617, "\u25B2"], ["Gate out", 666, "\u25B2"], ["Phones", 713, "\u25B2"]].forEach(a => { out.push({ k: "jack", x: a[1] * F, y: 82 * F }); out.push({ k: "jlab", x: a[1] * F, y: 100 * F, text: a[2] + " " + a[0] }); });
+    out.push({ k: "st", x: 232 * F, y: 30 * F, text: "Computer controlled", fs: 15, color: "#1a1400" }); out.push({ k: "st", x: 870 * F, y: 32 * F, text: "Analog bass line synthesizer", fs: 15, color: "#1a1400" }); out.push({ k: "led", x: 678 * F, y: 168 * F });
+    out.push({ k: "logo", x: 80 * F, y: 20 * F, text: "TD-3" });
+    out.push({ k: "smile", x: 708 * F, y: 232 * F, w: 110 }); out.push({ k: "svg", x: 299 * F, y: 225 * F, svg: grpSvg() }); out.push({ k: "svg", x: 479 * F, y: 225 * F, svg: modeSvg() });
+    seqDeco(out, -6, 555); return out;
+  })(),
+  cableSrc: ["Not connected", "CV out", "Gate out", "Phones"],
+  cableDst: ["Not connected", "Filter in", "Sync in"]
+};
+(function () { const k = 1.14; [TD3MO, TD3].forEach(syn => { syn.boxes.forEach(b => { b.y *= k; b.h *= k; }); syn.ctrls.forEach(c => { c.cy *= k; }); syn.statics.forEach(t => { t.y *= k; if (t.k === "rect") t.h *= k; }); syn.H = Math.round(syn.H * k); syn.boxW = "4px";
+  const XO = 40, DY = syn.id === "td3mo" ? -32 : -10, noteY = (syn.id === "td3mo" ? 508 : 502) * 1.8 * k;
+  syn.boxes.forEach(b => { b.x += XO; b.y += DY; }); syn.ctrls.forEach(c => { c.cx += XO; c.cy += DY; }); syn.statics.forEach(t => { t.x += XO; t.y += DY; });
+  syn.W += 2 * XO; syn.wood = XO; syn.H = Math.round(noteY + DY + 46);
+  syn.statics.forEach(t => { if (t.k === "rect" && t.y + t.h > syn.H) t.h = syn.H - t.y; }); }); })();
+const SYNTHS = [PRO1, CAT, TD3MO, TD3];
+const DEF_SYNTH = (document.documentElement.dataset.synth || "pro1");
+const synthById = id => SYNTHS.find(s => s.id === id) || PRO1;
+const controlsOf = syn => syn.ctrls;
+
+/* ---------- State and local library ---------- */
+const KEY = "catrecipe.v1";
+let mem = null;
+function load() { try { const t = localStorage.getItem(KEY); if (t) return JSON.parse(t); } catch (e) {} return mem; }
+function persist() { const d = { presets: db.presets, settings: db.settings }; mem = d; try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { return false; } }
+const uid = () => "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const today = () => new Date().toISOString().slice(0, 10);
+
+function dirtyBass() {
+  return {
+    id: "seed-bass", synth: "pro1", name: "Fat Dirty Bass", author: "", category: "Bass", version: 1,
+    notes: "Example recipe, read from a photo of the panel on 2026-10-18. Knob values are estimates, give or take 1. Dashed ring: estimated. Yellow ?: low confidence. Switch levers shown as ? could not be read from the photo: set them on the real panel.\n\nIdea: both oscillators in the mix with a lot of noise, filter mostly open, short filter attack, long amp sustain.",
+    values: { aFreq:0, aOct:0, aPW:6, bFreq:0, bOct:1, bPW:8.5, mA:6, mB:7.5, mN:7, cutoff:8.3, res:1, fEnvAmt:5.7, kbdAmt:.5, fA:.5, fD:4.5, fS:8, fR:1, aA:.5, aD:6.3, aS:9.5, aR:2, lfoFreq:6.5, glideRate:4, tune:0, volume:7, modFilEnvAmt:.5, modOscBAmt:1.7, modLfoAmt:1.7, aSync:1, glideMode:1, retrig:1, repeat:1 },
+    low: ["res","kbdAmt","fA","fR","aA","aR","tune","volume","modFilEnvAmt","modOscBAmt","modLfoAmt","lfoFreq","glideRate","aSync","glideMode","retrig","repeat"],
+    est: "all", cables: [], created: "2026-10-18", updated: "2026-10-18"
+  };
+}
+const saved = load();
+const db = saved && saved.presets ? saved : { presets: [dirtyBass()], settings: { synth: DEF_SYNTH, tips: true, current: DEF_SYNTH === "pro1" ? "seed-bass" : null } };
+if (!db.settings) db.settings = { synth: DEF_SYNTH, tips: true };
+if (db.settings.zoom == null) db.settings.zoom = "fit";
+if (db.settings.shelf == null) db.settings.shelf = true;
+
+const SEQ = { len: 16, steps: [[12,0,0],[12,0,0],[24,1,0],[12,0,1],[15,0,0],[12,0,1],[27,1,0],[null,0,0],[12,0,0],[12,0,0],[22,1,1],[null,0,0],[15,0,0],[15,0,1],[19,1,0],[12,0,0]].map(a => ({ n: a[0], a: a[1], s: a[2], t: 0 })) };
+function starter(id, synth, name, cat, notes, values, seq) {
+  return { seq, id, synth, name, author: "", category: cat, version: 1, notes, values, low: [], est: [], cables: [], source: "starter", created: "2026-10-18", updated: "2026-10-18" };
+}
+const SEEDS = [
+  starter("seed-cat-saw", "cat", "Simple Saw Bass", "Bass", "Starter idea, not copied from a real patch: sawtooth plus sub, filter low, resonance light, short decay. Move the sliders to these positions, then adjust by ear.",
+    { v1Kbd: 2, v1Fine: 5, v1Saw: 8, v1Sub: 6, v1Tri: 0, v1Pulse: 0, v2Sub: 0, v2Square: 0, v2Saw: 0, vcfVco1: 0, vcfFc: 4, vcfQ: 3, tgA: 0, tgD: 4, tgS: 2, tgR: 2, adsrRepeat: 1, vcaMode: 0, volume: 7, noise: 0, pitchBend: 0, octShift: 1, glide: 0 }),
+  starter("seed-td3mo-acid", "td3mo", "Classic Acid Line", "Bass", "Starter idea, not copied from a real patch: sawtooth, resonance high, cutoff low with strong envelope, short decay. Set the same positions and adjust by ear.",
+    { wave: 0, tune: 5, cutoff: 3.5, reso: 7.5, env: 7, decay: 3, accent: 6, overdrive: 3, volume: 7, subOsc: 1 }, SEQ),
+  starter("seed-td3-acid", "td3", "Classic Acid Line", "Bass", "Starter idea, not copied from a real patch: sawtooth, resonance high, cutoff low with strong envelope, short decay. Set the same positions and adjust by ear.",
+    { wave: 0, tune: 5, cutoff: 3.5, reso: 7, env: 7, decay: 3, accent: 6, distSw: 0, volume: 7 }, SEQ)
+];
+db.settings.seeded = db.settings.seeded || ["seed-bass"];
+SEEDS.forEach(sd => { const ex = db.presets.find(p => p.id === sd.id); if (ex && sd.seq && !ex.seq) ex.seq = JSON.parse(JSON.stringify(sd.seq)); });
+SEEDS.forEach(sd => { if (!db.settings.seeded.includes(sd.id)) { if (!db.presets.some(p => p.id === sd.id)) db.presets.push(sd); db.settings.seeded.push(sd.id); } });
+persist();
+
+let cur = null, baseline = "", toastT = 0, delArmed = false, scale = 1;
+
+function blank(synth) { return { id: uid(), synth, name: "New recipe", author: "", category: "Other", notes: "", values: {}, low: [], est: [], cables: [], version: 1, created: today(), updated: today() }; }
+const snap = () => JSON.stringify(cur);
+const isDirty = () => snap() !== baseline;
+function setCurrent(p, isNew) { cur = JSON.parse(JSON.stringify(p)); if (synthById(cur.synth).seq && !cur.seq) cur.seq = emptySeq(); baseline = isNew ? "" : snap(); db.settings.current = p.id; renderAll(); }
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const fmt1 = v => (Math.round(v * 10) / 10).toFixed(1);
+const valueOf = c => { const v = cur.values[c.id]; return v == null ? null : v; };
+const isLow = id => (cur.low || []).includes(id);
+const isEst = id => cur.est === "all" ? cur.values[id] != null : (cur.est || []).includes(id);
+const cname = c => c.name || plain(c.label);
+function confirmValue(c) {
+  if (cur.est === "all") cur.est = Object.keys(cur.values).filter(k => k !== c.id && cur.values[k] != null);
+  else cur.est = (cur.est || []).filter(x => x !== c.id);
+  cur.low = (cur.low || []).filter(x => x !== c.id);
+}
+
+/* ---------- Knob ---------- */
+function knobSVG(c, kind) {
+  const cx = 38, cy = 38, rc = 19, rt = 30, a0 = -135, a1 = 135;
+  const ang = v => a0 + (a1 - a0) * (v - c.min) / (c.max - c.min);
+  const pt = (a, r) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
+  let s = '<svg class="knob ' + (kind === "p1" ? "p1" : "") + '" viewBox="0 0 76 76" tabindex="0" role="slider" aria-label="' + cname(c) + '" aria-valuemin="' + c.min + '" aria-valuemax="' + c.max + '">';
+  c.ticks.forEach(t => {
+    const a = ang(t), p1 = pt(a, rc + 3), p2 = pt(a, rc + (c.nums ? 6 : 12));
+    s += '<line class="tick" x1="' + p1[0] + '" y1="' + p1[1] + '" x2="' + p2[0] + '" y2="' + p2[1] + '"/>';
+    if (c.nums) { const pl = pt(a, rt + 3); s += '<text class="tk" x="' + pl[0] + '" y="' + pl[1] + '">' + Math.abs(t) + "</text>"; }
+  });
+  return s + '<circle class="cap" cx="38" cy="38" r="' + rc + '"/><line class="ptr" x1="38" y1="32" x2="38" y2="' + (cy - rc + 3) + '"/></svg>';
+}
+function updateKnob(wrap, c) {
+  const v = valueOf(c), ptr = wrap.querySelector(".ptr"), val = v == null ? c.def : v;
+  const ang = -135 + 270 * (val - c.min) / (c.max - c.min);
+  ptr.setAttribute("transform", "rotate(" + ang + " 38 38)"); ptr.style.opacity = v == null ? .35 : 1;
+  wrap.querySelector("svg").setAttribute("aria-valuenow", val);
+  wrap.querySelector(".val").textContent = v == null ? "-" : (c.fmt ? c.fmt(v) : fmt1(v));
+  wrap.querySelectorAll(".badge").forEach(b => b.remove());
+  if (v != null && isEst(c.id)) wrap.appendChild(el("span", "badge " + (isLow(c.id) ? "low" : "est"), isLow(c.id) ? "?" : ""));
+}
+function setKnob(c, v, wrap) {
+  v = Math.min(c.max, Math.max(c.min, Math.round(v / c.step) * c.step)); v = Math.round(v * 100) / 100;
+  cur.values[c.id] = v; confirmValue(c); updateKnob(wrap, c); refreshMeta();
+  $("#scParam").textContent = cname(c) + " = " + (c.fmt ? c.fmt(v) : fmt1(v));
+}
+function dragWire(target, c, getV, setV, pxPerRange) {
+  let y0 = null, v0 = 0;
+  target.addEventListener("pointerdown", e => { target.setPointerCapture(e.pointerId); y0 = e.clientY; v0 = getV(); hideTip(); });
+  target.addEventListener("pointermove", e => { if (y0 == null) return; setV(v0 + (y0 - e.clientY) / (pxPerRange() * scale) * (c.max - c.min) * (e.shiftKey ? .25 : 1)); });
+  const end = () => { y0 = null; }; target.addEventListener("pointerup", end); target.addEventListener("pointercancel", end);
+  target.addEventListener("wheel", e => { e.preventDefault(); setV(getV() + (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 1 : .1)); }, { passive: false });
+  target.addEventListener("dblclick", () => setV(c.def));
+  target.addEventListener("keydown", e => {
+    const st = e.shiftKey ? 1 : .1;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") { e.preventDefault(); setV(getV() + st); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { e.preventDefault(); setV(getV() - st); }
+    else if (e.key === "Home") { e.preventDefault(); setV(c.min); } else if (e.key === "End") { e.preventDefault(); setV(c.max); }
+  });
+}
+function buildKnob(c, kind) {
+  const top = !!synthById(cur.synth).labelTop, w = el("div", "ctl" + (top ? " lt" : "")); w.dataset.tip = c.tip; w.style.left = (c.cx - 42) + "px"; w.style.top = (c.cy - 38 - (top ? 17 : 0)) + "px";
+  const ends = c.ends ? '<div class="ends"><span>' + rich(c.ends[0]) + "</span><span>" + rich(c.ends[1]) + "</span></div>" : "";
+  w.innerHTML = knobSVG(c, kind) + '<div class="val"></div>' + ends + '<div class="lbl">' + rich(c.label) + "</div>";
+  const svg = w.querySelector("svg"), gv = () => valueOf(c) == null ? c.def : valueOf(c);
+  dragWire(svg, c, gv, v => setKnob(c, v, w), () => 160);
+  updateKnob(w, c); return w;
+}
+
+/* ---------- Switch ---------- */
+function buildSwitch(c) {
+  const n = c.pos.length, H = n === 2 ? 40 : 58, left = c.side === "l", w = el("div", "sw"); w.dataset.tip = c.tip;
+  w.style.left = (c.cx - 42) + "px"; w.style.top = (c.cy - H / 2 - (left ? 0 : 14)) + "px";
+  const slot = '<button class="slot" style="height:' + H + 'px" aria-label="' + cname(c) + '"><span class="lever"></span></button>';
+  let html;
+  if (left) {
+    const tags = c.pos.map((t, i) => '<span class="tag" data-i="' + i + '">' + rich(t) + "</span>").join("");
+    html = '<div class="body"><div class="side l" style="height:' + H + 'px">' + tags + "</div>" + slot + "</div>";
+  } else {
+    const mid = n === 3 ? '<div class="side" style="height:' + H + 'px;justify-content:center"><span class="tag" data-i="1">' + rich(c.pos[1]) + "</span></div>" : "";
+    html = '<div class="tag" data-i="0">' + rich(c.pos[0]) + '</div><div class="body">' + slot + mid + '</div><div class="tag" data-i="' + (n - 1) + '">' + rich(c.pos[n - 1]) + "</div>";
+  }
+  w.innerHTML = html + '<div class="q"></div><div class="lbl">' + rich(c.label) + "</div>";
+  const lever = w.querySelector(".lever"), tags = w.querySelectorAll(".tag");
+  function paint() {
+    const v = valueOf(c); w.classList.toggle("unset", v == null);
+    w.querySelector(".q").textContent = (v == null || isLow(c.id)) ? "?" : "";
+    lever.style.top = (2 + (H - 26) * ((v == null ? (n - 1) / 2 : v) / (n - 1))) + "px";
+    tags.forEach(t => t.classList.toggle("on", v === +t.dataset.i));
+  }
+  w.querySelector(".slot").addEventListener("click", () => {
+    const v = valueOf(c), nv = v == null ? 0 : (v + 1) % n; cur.values[c.id] = nv; confirmValue(c); paint(); refreshMeta();
+    $("#scParam").textContent = cname(c) + " = " + plain(c.pos[nv]);
+  });
+  paint(); return w;
+}
+
+/* ---------- Slider ---------- */
+function buildSlider(c) {
+  const w = el("div", "sld"); w.dataset.tip = c.tip; const CAP = 32, H = c.h;
+  w.style.left = (c.cx - 32) + "px"; w.style.top = (c.cy - H / 2 - 16) + "px";
+  let ends = ""; (c.ends || []).forEach(e => { ends += '<span class="endl ' + e[1] + " " + (e[2] || "") + '">' + rich(e[0]) + "</span>"; });
+  w.innerHTML = '<div class="val"></div><div class="rail" tabindex="0" role="slider" aria-label="' + cname(c) + '" style="height:' + H + 'px"><div class="groove"></div><div class="marks"></div><div class="cap ' + c.cap + '"></div>' + ends + '</div><div class="lbl">' + rich(c.label) + "</div>";
+  const rail = w.querySelector(".rail"), cap = w.querySelector(".cap"), val = w.querySelector(".val"), gv = () => valueOf(c) == null ? c.def : valueOf(c);
+  function paint() {
+    const v = valueOf(c), x = v == null ? c.def : v;
+    cap.style.top = ((1 - (x - c.min) / (c.max - c.min)) * (H - CAP)) + "px"; cap.style.opacity = v == null ? .5 : 1;
+    val.textContent = v == null ? "-" : (c.fmt ? c.fmt(v) : fmt1(v)); rail.setAttribute("aria-valuenow", x);
+    w.querySelectorAll(".badge").forEach(b => b.remove());
+    if (v != null && isEst(c.id)) w.appendChild(el("span", "badge " + (isLow(c.id) ? "low" : "est"), isLow(c.id) ? "?" : ""));
+  }
+  function set(v) { v = Math.min(c.max, Math.max(c.min, Math.round(v / c.step) * c.step)); v = Math.round(v * 100) / 100; cur.values[c.id] = v; confirmValue(c); paint(); refreshMeta(); $("#scParam").textContent = cname(c) + " = " + (c.fmt ? c.fmt(v) : fmt1(v)); }
+  dragWire(rail, c, gv, set, () => H - CAP);
+  paint(); return w;
+}
+
+/* ---------- Panel ---------- */
+function renderPanel() {
+  const syn = synthById(cur.synth), cv = $("#canvas"); cv.innerHTML = "";
+  cv.style.width = syn.W + "px"; cv.style.height = syn.H + "px";
+  ["--panel","--panel-fg","--panel-line","--cap","--capline","--ptr","--tick","--sub","--val","--on"].forEach(k => cv.style.removeProperty(k));
+  Object.keys(syn.theme || {}).forEach(k => cv.style.setProperty(k, syn.theme[k]));
+  if (syn.wood) { cv.appendChild(el("div", "wood l")); cv.appendChild(el("div", "wood r")); }
+  syn.boxes.forEach(b => { const d = el("div", "box"); if (syn.boxW) d.style.borderWidth = syn.boxW; d.style.cssText += "left:" + b.x + "px;top:" + b.y + "px;width:" + b.w + "px;height:" + b.h + "px"; if (b.title) d.appendChild(el("h3", null, b.title)); cv.appendChild(d); });
+  syn.statics.forEach(s => {
+    let d;
+    if (s.k === "jack") d = el("div", "jack"); else if (s.k === "din") { d = el("div", "din"); [[-20,0],[-14,-14],[0,-20],[14,-14],[20,0]].forEach(p => { const i = el("i"); i.style.transform = "translate(" + p[0] + "px," + p[1] + "px)"; d.appendChild(i); }); } else if (s.k === "usb") d = el("div", "usbb"); else if (s.k === "cat") { d = el("div", "cathead", '<svg width="'+s.w+'" height="'+s.h+'" viewBox="0 0 100 110" aria-label="sitting cat"><g fill="#f0eee3"><path d="M32 30 C26 48 26 70 30 98 L46 98 L46 84 C60 90 76 90 84 80 C92 68 84 44 68 36 C56 30 44 28 32 30 Z"/><ellipse cx="66" cy="76" rx="20" ry="20"/><rect x="28" y="66" width="15" height="32" rx="6"/><ellipse cx="34" cy="99" rx="11" ry="4.5"/><ellipse cx="68" cy="99" rx="14" ry="4.5"/><ellipse cx="36" cy="24" rx="16" ry="12.5"/><path d="M23 18 L26 1 L38 12 Z"/><path d="M40 12 L51 2 L52 20 Z"/></g><path d="M82 94 C98 100 104 82 96 62" fill="none" stroke="#f0eee3" stroke-width="6" stroke-linecap="round"/><g stroke="#151517" stroke-width="2.2" stroke-linecap="round" fill="none"><path d="M60 62 L72 70 M56 74 L70 82 M62 88 L74 92"/><path d="M92 74 L97 76 M94 84 L99 84"/></g><ellipse cx="29" cy="22" rx="2.2" ry="3" fill="#151517"/><path d="M19 27 l3 2 l-3 1 Z" fill="#151517"/><g stroke="#151517" stroke-width="1" fill="none"><path d="M24 29 L8 26 M24 31 L8 33"/></g></svg>'); } else if (s.k === "rect") { d = el("div", "rect", s.text ? rich(s.text) : ""); d.style.cssText = "left:" + s.x + "px;top:" + s.y + "px;width:" + s.w + "px;height:" + s.h + "px;" + (s.bg ? "background:" + s.bg + ";" : "") + (s.bd ? "border:" + (syn.boxW || "1.5px") + " solid " + s.bd + ";" : "") + "border-radius:" + (s.r || 0) + "px;" + (s.tc ? "color:" + s.tc + ";" : "") + (s.fs ? "font-size:" + s.fs + "px;" : ""); cv.appendChild(d); return; }
+    else if (s.k === "svg") { d = el("div", "cathead", s.svg); d.style.pointerEvents = "none"; }
+    else if (s.k === "smile") { d = el("div", "cathead", '<svg width="' + s.w + '" height="' + s.w + '" viewBox="0 0 100 100" aria-label="smiley"><circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="8"/><ellipse cx="34" cy="38" rx="7" ry="11" fill="currentColor"/><ellipse cx="66" cy="38" rx="7" ry="11" fill="currentColor"/><path d="M23 58 Q50 90 77 58" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>'); }
+    else if (s.k === "jlab") { d = el("div", "jlab", rich(s.text)); if (s.fs) d.style.cssText += "font-size:" + s.fs + "px;letter-spacing:0;"; } else if (s.k === "led") d = el("div", "led" + (s.off ? " off" : ""));
+    else if (s.k === "wire") { d = el("div", "wire"); d.style.width = s.w + "px"; d.style.left = s.x + "px"; d.style.top = s.y + "px"; cv.appendChild(d); return; }
+    else if (s.k === "logo") d = el("div", "logo", s.text + (s.small ? "<small>" + s.small + "</small>" : "")); else { d = el("div", "st" + (s.dim ? " dim" : ""), rich(s.text)); if (s.fs) d.style.fontSize = s.fs + "px"; if (s.color) d.style.color = s.color; }
+    d.style.left = s.x + "px"; d.style.top = s.y + "px"; cv.appendChild(d);
+  });
+  syn.ctrls.forEach(c => cv.appendChild(c.t === "knob" ? buildKnob(c, syn.kind) : c.t === "sw" ? buildSwitch(c) : buildSlider(c)));
+  applyScale();
+}
+function applyScale() {
+  const syn = synthById(cur.synth), vp = $("#viewport");
+  const z = db.settings.zoom;
+  if (z === "fit") scale = Math.max(.3, Math.min(2, (vp.clientWidth || syn.W) / syn.W)); else scale = Math.max(.35, Math.min(2, z / 100));
+  $("#canvas").style.transform = "scale(" + scale + ")";
+  const sz = $("#sizer"); sz.style.width = (syn.W * scale) + "px"; sz.style.height = (syn.H * scale) + "px";
+  $("#zoom").value = Math.round(scale * 100); $("#zoomOut").textContent = Math.round(scale * 100) + "%" + (z === "fit" ? " fit" : "");
+}
+
+
+/* ---------- Sequence piano roll (TD-3 family): 16 steps, one note per step, accent, slide, tie ---------- */
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"], NROWS = 37;
+const emptySeq = () => ({ len: 16, steps: Array.from({ length: 16 }, () => ({ n: null, a: 0, s: 0, t: 0 })) });
+const noteLabel = i => NOTE_NAMES[i % 12] + (i % 12 === 0 ? " " + (Math.floor(i / 12) - 1 >= 0 ? "+" : "") + (Math.floor(i / 12) - 1) : "");
+const noteShort = i => NOTE_NAMES[i % 12] + (Math.floor(i / 12) - 1 >= 0 ? "+" : "") + (Math.floor(i / 12) - 1);
+function renderSeq() {
+  const syn = synthById(cur.synth), card = $("#seqCard"); card.hidden = !syn.seq; if (!syn.seq) return;
+  const box = $("#seqBox"); box.innerHTML = ""; const q = cur.seq;
+  const bar = el("div", "seqbar");
+  const lenSel = el("select"); for (let i = 1; i <= 16; i++) { const o = el("option"); o.value = i; o.textContent = i; lenSel.appendChild(o); } lenSel.value = q.len; lenSel.setAttribute("aria-label", "pattern length");
+  const mkBtn = (t, f, tip) => { const b = el("button", "btn small", t); if (tip) b.dataset.tip = tip; b.onclick = f; return b; };
+  const shift = d => { q.steps.forEach(st => { if (st.n != null) st.n = Math.max(0, Math.min(NROWS - 1, st.n + d)); }); paint(); };
+  bar.append(el("span", null, "Length"), lenSel,
+    mkBtn("Octave -", () => shift(-12), "Move every note down one octave."), mkBtn("Octave +", () => shift(12), "Move every note up one octave."),
+    mkBtn("Semitone -", () => shift(-1)), mkBtn("Semitone +", () => shift(1)),
+    mkBtn("Clear", () => { cur.seq = emptySeq(); renderSeq(); refreshMeta(); }, "Remove all notes and flags."));
+  bar.appendChild(el("span", "note", "Octave marks (-1, 0, +1) are relative to the TD-3 keys: 0 is the C to C range with no transpose. Click a cell to place the note for a step, click again to make it a rest. Range may be wider than the real synth: check."));
+  box.appendChild(bar);
+  const wrap = el("div", "rollwrap"), roll = el("div", "roll"); wrap.appendChild(roll);
+  roll.appendChild(el("div", "hd", ""));
+  for (let c = 0; c < 16; c++) roll.appendChild(el("div", "hd", String(c + 1)));
+  const cells = [];
+  for (let i = NROWS - 1; i >= 0; i--) {
+    const rl = el("div", "rl" + (i % 12 === 0 ? " c" : ""), noteLabel(i)); roll.appendChild(rl);
+    for (let c = 0; c < 16; c++) {
+      const b = el("button", "cell" + (NOTE_NAMES[i % 12].includes("#") ? " blk" : "")); b.setAttribute("aria-label", "step " + (c + 1) + " " + noteShort(i));
+      b.onclick = () => { const st = q.steps[c]; st.n = st.n === i ? null : i; paint(); refreshMeta(); $("#scParam").textContent = "Step " + (c + 1) + " = " + (st.n == null ? "rest" : noteShort(st.n)); };
+      roll.appendChild(b); (cells[c] = cells[c] || [])[i] = b;
+    }
+  }
+  box.appendChild(wrap);
+  const fl = el("div", "flags"), fb = { a: [], s: [], t: [] };
+  [["a", "Accent", "Accent on this step."], ["s", "Slide", "Slide marker on this step, as the TD-3 Slide button."], ["t", "Tie", "Hold the previous note through this step."]].forEach(r => {
+    fl.appendChild(el("div", "fl", r[1]));
+    for (let c = 0; c < 16; c++) { const b = el("button", r[0]); b.dataset.tip = r[2]; b.setAttribute("aria-label", r[1] + " step " + (c + 1)); b.onclick = () => { q.steps[c][r[0]] = q.steps[c][r[0]] ? 0 : 1; paint(); refreshMeta(); }; fl.appendChild(b); fb[r[0]][c] = b; }
+  });
+  box.appendChild(fl);
+  function paint() {
+    for (let c = 0; c < 16; c++) {
+      const st = q.steps[c], dim = c >= q.len;
+      for (let i = 0; i < NROWS; i++) { const b = cells[c][i]; b.classList.toggle("on", st.n === i); b.classList.toggle("off", dim); }
+      ["a", "s", "t"].forEach(k => { fb[k][c].classList.toggle("on", !!st[k]); fb[k][c].classList.toggle("off", dim); });
+    }
+  }
+  lenSel.onchange = () => { q.len = +lenSel.value; paint(); refreshMeta(); };
+  paint();
+  const ns = q.steps.map(st => st.n).filter(n => n != null), mid = ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : 18;
+  wrap.scrollTop = Math.max(0, (NROWS - 1 - mid) * 16 - 120);
+}
+const seqText = q => {
+  const L = ["SEQUENCE (" + q.len + " steps; octave marks relative to the keys, 0 = C to C with no transpose)"];
+  for (let c = 0; c < q.len; c++) { const st = q.steps[c]; L.push("  " + String(c + 1).padStart(2) + "  " + (st.n == null ? (st.t ? "tie" : "rest") : noteShort(st.n).padEnd(4)) + (st.a ? "  accent" : "") + (st.s ? "  slide" : "") + (st.n != null && st.t ? "  tie" : "")); }
+  return L.join("\n");
+};
+
+/* ---------- Other rendering ---------- */
+function renderSynthSel() { const s = $("#synthSel"); s.innerHTML = ""; SYNTHS.forEach(x => { const o = el("option"); o.value = x.id; o.textContent = x.name; s.appendChild(o); }); s.value = db.settings.synth; }
+function renderList() {
+  const ul = $("#list"); ul.innerHTML = "";
+  const items = db.presets.filter(p => p.synth === db.settings.synth);
+  if (!items.length) ul.appendChild(el("div", "empty", "No recipes for this synth yet. Press New, set the panel, then Save."));
+  items.forEach(p => {
+    const li = el("li", cur && p.id === cur.id ? "on" : ""), b = el("button"); b.innerHTML = '<span class="n"></span><span class="m"></span>';
+    b.querySelector(".n").textContent = p.name; b.querySelector(".m").textContent = p.category + " · " + (p.updated || ""); b.onclick = () => setCurrent(p); li.appendChild(b); ul.appendChild(li);
+  });
+}
+function renderCables() {
+  const syn = synthById(cur.synth), box = $("#cables"); box.innerHTML = ""; cur.cables = cur.cables || [];
+  for (let i = 0; i < 9; i++) {
+    const row = el("div", "cable"), c = cur.cables[i] || (cur.cables[i] = { from: 0, to: 0 });
+    const mk = (list, val, set) => { const s = el("select"); list.forEach((t, j) => { const o = el("option"); o.value = j; o.textContent = t; s.appendChild(o); }); s.value = Math.min(val || 0, list.length - 1); s.onchange = () => { set(+s.value); refreshMeta(); }; s.setAttribute("aria-label", "cable " + (i + 1)); return s; };
+    row.appendChild(el("i", null, String(i + 1))); row.appendChild(mk(syn.cableSrc, c.from, v => c.from = v)); row.appendChild(el("span", "arr", "→")); row.appendChild(mk(syn.cableDst, c.to, v => c.to = v)); box.appendChild(row);
+  }
+}
+function sheetText() {
+  const syn = synthById(cur.synth), L = [];
+  L.push(cur.name + "  |  " + syn.name + "  |  " + cur.category + (cur.author ? "  |  by " + cur.author : ""));
+  L.push("Saved " + (cur.updated || today()) + ". (est) = read from a photo, about +/-1; (?) = low confidence; (unset) = not known.");
+  if (syn.id === "cat") L.push("CAT values are positions on a 0-10 scale (bottom to top for sliders, min to max for knobs).");
+  L.push("");
+  const order = []; syn.ctrls.forEach(c => { if (!order.includes(c.sec)) order.push(c.sec); });
+  order.forEach(sec => {
+    L.push(sec.toUpperCase());
+    syn.ctrls.filter(c => c.sec === sec).forEach(c => {
+      const v = cur.values[c.id]; let t;
+      if (v == null) t = "(unset)"; else if (c.t === "sw") t = plain(c.pos[v]); else t = c.fmt ? c.fmt(v) : fmt1(v);
+      if (v != null && isEst(c.id)) t += isLow(c.id) ? " (est ?)" : " (est)";
+      L.push("  " + cname(c).padEnd(22) + t);
+    }); L.push("");
+  });
+  if (syn.seq && cur.seq) { L.push(seqText(cur.seq)); L.push(""); }
+  const cabs = (cur.cables || []).map((c, i) => c.from || c.to ? "  " + (i + 1) + ". " + syn.cableSrc[c.from] + " -> " + syn.cableDst[c.to] : null).filter(Boolean);
+  L.push("PATCH CABLES"); L.push(cabs.length ? cabs.join("\n") : "  none"); L.push("");
+  if (cur.notes) { L.push("NOTES"); L.push(cur.notes); }
+  return L.join("\n");
+}
+function refreshMeta() {
+  const d = isDirty(); $("#dirtyChip").textContent = d ? "unsaved changes" : "saved"; $("#dirtyChip").classList.toggle("dirty", d);
+  const syn = synthById(cur.synth); $("#sheet").value = sheetText();
+  const anyEst = cur.est === "all" || (cur.est && cur.est.length), bar = $("#estBar");
+  if (cur.source === "starter") { bar.hidden = true; } else if (anyEst) { const unset = syn.ctrls.filter(c => cur.values[c.id] == null).length; bar.hidden = false;
+    bar.textContent = "Values read from a photo: dashed ring = estimate (about +/-1), yellow ? = low confidence." + (unset ? " " + unset + " controls are still unset (shown dim). Set them from the real panel." : "") + " Moving a control marks it as confirmed."; }
+  else bar.hidden = true;
+}
+function renderAll() {
+  const syn = synthById(cur.synth); db.settings.synth = syn.id;
+  renderSynthSel(); renderList();
+  $("#presetName").value = cur.name; $("#author").value = cur.author || ""; $("#category").value = cur.category || "Other"; $("#notes").value = cur.notes || "";
+  renderPanel(); renderSeq(); renderCables(); refreshMeta();
+  $("#delBtn").textContent = "Delete"; delArmed = false; $("#scParam").textContent = syn.id === "cat" ? "move a slider or knob" : "move a knob";
+  $("#shelf").hidden = !db.settings.shelf; $("#shelfOn").checked = db.settings.shelf;
+}
+
+/* ---------- Actions ---------- */
+function toast(msg, err) {
+  document.querySelectorAll(".toast").forEach(t => t.remove()); const t = el("div", "toast" + (err ? " err" : "")); t.textContent = msg; document.body.appendChild(t);
+  clearTimeout(toastT); toastT = setTimeout(() => t.remove(), err ? 5000 : 2600);
+}
+function save(asCopy) {
+  cur.name = ($("#presetName").value.trim() || "Untitled").slice(0, 20); cur.updated = today();
+  const rec = JSON.parse(JSON.stringify(cur));
+  if (asCopy) { rec.id = uid(); rec.name = (rec.name + " copy").slice(0, 20); rec.created = today(); }
+  const i = db.presets.findIndex(p => p.id === rec.id); if (i >= 0) db.presets[i] = rec; else db.presets.push(rec);
+  const ok = persist(); setCurrent(rec);
+  toast(ok ? "Saved in the app library." : "Saved for this session only: this browser blocked storage. Use Export file to keep it.", !ok);
+}
+function del() {
+  const b = $("#delBtn");
+  if (!delArmed) { delArmed = true; b.textContent = "Really delete?"; setTimeout(() => { delArmed = false; b.textContent = "Delete"; }, 3000); return; }
+  db.presets = db.presets.filter(p => p.id !== cur.id); persist();
+  const next = db.presets.find(p => p.synth === db.settings.synth); setCurrent(next || blank(db.settings.synth), !next); toast("Deleted.");
+}
+const payload = list => JSON.stringify({ format: "cat-recipe-book", version: 1, exported: new Date().toISOString(), presets: list }, null, 2);
+async function saveFile(text, name, type, label) {
+  if (window.showSaveFilePicker) {
+    try { const h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: label, accept: { [type]: [name.slice(name.lastIndexOf("."))] } }] }); const w = await h.createWritable(); await w.write(text); await w.close(); toast("Saved to " + h.name + " in the folder you picked."); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  try { const url = URL.createObjectURL(new Blob([text], { type })); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); toast("Sent to your browser downloads as " + name + "."); } catch (e) {}
+  showText(text, name);
+}
+function showText(text, name) {
+  const d = el("div", "dlg"), b = el("div");
+  b.innerHTML = "<h2>Copy this into a file called " + name + "</h2><p style='margin:0;color:var(--dim);font-size:13px'>If no file was saved, this viewer blocks downloads. Copy the text into a new file with that name, or open the page from your own drive instead.</p>";
+  const ta = el("textarea"); ta.value = text; ta.readOnly = true; ta.style.minHeight = "240px"; b.appendChild(ta);
+  const row = el("div", "opts"), cp = el("button", "btn primary", "Copy"), cl = el("button", "btn", "Close");
+  cp.onclick = () => { ta.select(); (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast("Copied."), () => toast("Press Ctrl+C to copy.", true)); };
+  cl.onclick = () => d.remove(); row.append(cp, cl); b.appendChild(row); d.appendChild(b); document.body.appendChild(d); ta.focus(); ta.select();
+}
+function importText(text) {
+  let d; try { d = JSON.parse(text); } catch (e) { toast("That file is not valid JSON.", true); return; }
+  if (!d || d.format !== "cat-recipe-book" || !Array.isArray(d.presets)) { toast("Not a Cat Recipe Book file.", true); return; }
+  let n = 0;
+  d.presets.forEach(p => {
+    if (!p || typeof p.name !== "string" || !SYNTHS.some(s => s.id === p.synth) || typeof p.values !== "object" || !p.values) return;
+    const syn = synthById(p.synth), ids = new Set(syn.ctrls.map(c => c.id)), vals = {};
+    syn.ctrls.forEach(c => { const v = p.values[c.id]; if (typeof v === "number" && isFinite(v)) vals[c.id] = c.t === "sw" ? Math.max(0, Math.min(c.pos.length - 1, Math.round(v))) : Math.max(c.min, Math.min(c.max, v)); });
+    db.presets.push({ id: uid(), synth: p.synth, name: String(p.name).slice(0, 20), author: String(p.author || "").slice(0, 15), category: String(p.category || "Other").slice(0, 12), notes: String(p.notes || "").slice(0, 4000), values: vals,
+      low: Array.isArray(p.low) ? p.low.filter(x => ids.has(x)) : [], est: p.est === "all" ? "all" : (Array.isArray(p.est) ? p.est.filter(x => ids.has(x)) : []),
+      cables: Array.isArray(p.cables) ? p.cables.slice(0, 9).map(c => ({ from: Math.max(0, Math.min(syn.cableSrc.length - 1, (c && c.from) | 0)), to: Math.max(0, Math.min(syn.cableDst.length - 1, (c && c.to) | 0)) })) : [],
+      seq: (SYNTHS.find(s => s.id === p.synth).seq && p.seq && Array.isArray(p.seq.steps)) ? { len: Math.max(1, Math.min(16, p.seq.len | 0 || 16)), steps: Array.from({ length: 16 }, (_, i) => { const st = p.seq.steps[i] || {}; return { n: Number.isInteger(st.n) && st.n >= 0 && st.n < NROWS ? st.n : null, a: st.a ? 1 : 0, s: st.s ? 1 : 0, t: st.t ? 1 : 0 }; }) } : undefined, version: 1, source: p.source === "starter" ? "starter" : "", created: p.created || today(), updated: p.updated || today() }); n++;
+  });
+  persist(); renderList(); toast(n ? "Imported " + n + " recipe" + (n > 1 ? "s" : "") + "." : "Nothing to import.", !n);
+}
+
+/* ---------- Info bubbles ---------- */
+let tipT = 0, bub = null;
+function hideTip() { clearTimeout(tipT); if (bub) { bub.remove(); bub = null; } }
+document.addEventListener("pointerover", e => {
+  if (!db.settings.tips) return; const t = e.target.closest && e.target.closest("[data-tip]"); hideTip(); if (!t) return;
+  tipT = setTimeout(() => { bub = el("div", "bubble"); bub.textContent = t.dataset.tip; document.body.appendChild(bub);
+    const r = t.getBoundingClientRect(), bw = bub.offsetWidth; bub.style.left = Math.max(8, Math.min(innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)) + "px";
+    bub.style.top = (r.bottom + 8 + bub.offsetHeight > innerHeight ? r.top - bub.offsetHeight - 8 : r.bottom + 8) + "px"; }, 1000);
+});
+document.addEventListener("pointerdown", hideTip); document.addEventListener("scroll", hideTip, true);
+
+/* ---------- Wiring ---------- */
+$("#synthSel").onchange = e => { db.settings.synth = e.target.value; persist(); const p = db.presets.find(x => x.synth === db.settings.synth); setCurrent(p || blank(db.settings.synth), !p); };
+$("#presetName").oninput = e => { cur.name = e.target.value; refreshMeta(); };
+$("#author").oninput = e => { cur.author = e.target.value; refreshMeta(); };
+$("#category").onchange = e => { cur.category = e.target.value; refreshMeta(); };
+$("#notes").oninput = e => { cur.notes = e.target.value; refreshMeta(); };
+$("#saveBtn").onclick = () => save(false); $("#saveCopyBtn").onclick = () => save(true);
+$("#newBtn").onclick = () => setCurrent(blank(db.settings.synth), true); $("#delBtn").onclick = del;
+const fname = s => s.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") || "recipe";
+$("#exportBtn").onclick = () => { cur.name = $("#presetName").value.trim() || cur.name; saveFile(payload([cur]), fname(cur.name) + ".catrecipe.json", "application/json", "Cat Recipe Book file"); };
+$("#exportAllBtn").onclick = () => saveFile(payload(db.presets), "cat-recipe-book-all.catrecipe.json", "application/json", "Cat Recipe Book file");
+$("#importBtn").onclick = () => $("#fileIn").click();
+$("#fileIn").onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => importText(String(r.result)); r.readAsText(f); e.target.value = ""; };
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) { const r = new FileReader(); r.onload = () => importText(String(r.result)); r.readAsText(f); } });
+$("#tipsOn").checked = db.settings.tips !== false; $("#tipsOn").onchange = e => { db.settings.tips = e.target.checked; persist(); hideTip(); };
+$("#copySheet").onclick = () => { const t = sheetText(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast("Patch sheet copied."), () => { $("#sheet").select(); toast("Press Ctrl+C to copy.", true); }); };
+$("#saveSheet").onclick = () => saveFile(sheetText(), fname(cur.name) + "-patch-sheet.txt", "text/plain", "Text file");
+$("#zoom").oninput = e => { db.settings.zoom = +e.target.value; applyScale(); persist(); };
+$("#fitBtn").onclick = () => { db.settings.zoom = "fit"; applyScale(); persist(); };
+$("#oneBtn").onclick = () => { db.settings.zoom = 100; applyScale(); persist(); };
+$("#shelfOn").onchange = e => { db.settings.shelf = e.target.checked; $("#shelf").hidden = !e.target.checked; applyScale(); persist(); };
+if (window.ResizeObserver) new ResizeObserver(() => { if (cur && db.settings.zoom === "fit") applyScale(); }).observe($("#viewport")); else window.addEventListener("resize", () => { if (cur && db.settings.zoom === "fit") applyScale(); });
+window.addEventListener("beforeunload", e => { if (cur && isDirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+document.querySelectorAll("details.drawer").forEach(d => {
+  const o = db.settings.open || {}; d.open = !!o[d.dataset.k];
+  d.addEventListener("toggle", () => { db.settings.open = Object.assign({}, db.settings.open, { [d.dataset.k]: d.open }); persist(); });
+});
+const start = db.presets.find(p => p.id === db.settings.current && SYNTHS.some(s => s.id === p.synth)) || db.presets.find(p => p.synth === db.settings.synth) || db.presets.find(p => SYNTHS.some(s => s.id === p.synth));
+if (start) db.settings.synth = start.synth;
+setCurrent(start || blank(db.settings.synth), !start);
+})();
+</script>
+
+</body></html>

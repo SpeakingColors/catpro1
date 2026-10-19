@@ -80,8 +80,10 @@ const wave=(ph,sa,pu,tri,pw)=>{let v=0;if(sa)v+=2*(ph%1)-1;if(pu)v+=(ph%1<pw)?1:
 const o=P.panel;
 for(let x=0;x<w;x++){const t=x/w*4;let v=A*wave(t,o.oscA.saw,o.oscA.pulse,false,.1+.8*num("oscA.pw")/10)+B*wave(t*(1+(num("oscB.freq")-5)/50),o.oscB.saw,o.oscB.pulse,o.oscB.tri,.1+.8*num("oscB.pw")/10);
  v+=N*(Math.sin(x*12.9898)*43758.5453%1-.5);v=v/(1+A+B)*(0.35+0.65*cut)*(1+res*.3);const y=h/2-v*h*.4;x?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}
-function list(){fetch("patches/index.json").then(r=>r.json()).then(async j=>{const el=document.getElementById("plist");el.innerHTML="";
- for(const f of j.patches){try{const p=await (await fetch("patches/"+f)).json();const b=document.createElement("button");b.className="p";b.innerHTML=`${p.name}<br><small>${p.category||""} ${p.author?"· "+p.author:""}</small>`;b.onclick=()=>{load(p);document.querySelectorAll(".p").forEach(x=>x.classList.remove("on"));b.classList.add("on")};el.appendChild(b)}catch(e){}}}).catch(()=>{document.getElementById("plist").textContent="No patches found."})}
+/* EMBED: the offline zip inlines the patches as window.CATPRO1_PATCHES so the page works from a file:// URL */
+const getJson=async f=>{const e=window.CATPRO1_PATCHES;if(e&&e[f])return e[f];return (await fetch("patches/"+f)).json()};
+function list(){getJson("index.json").then(async j=>{const el=document.getElementById("plist");el.innerHTML="";
+ for(const f of j.patches){try{const p=await getJson(f);const b=document.createElement("button");b.className="p";b.innerHTML=`${p.name}<br><small>${p.category||""} ${p.author?"· "+p.author:""}</small>`;b.onclick=()=>{load(p);document.querySelectorAll(".p").forEach(x=>x.classList.remove("on"));b.classList.add("on")};el.appendChild(b)}catch(e){}}}).catch(()=>{document.getElementById("plist").textContent="No patches found."})}
 function load(p){if(p.format!=="catpro1-patch"||!p.panel){alert&&0;document.querySelector(".note").textContent="Not a catpro1 patch file.";return}
  P=structuredClone(INIT);Object.assign(P,p);P.panel=merge(structuredClone(INIT.panel),p.panel);build()}
 function merge(a,b){for(const k in b)a[k]=(b[k]&&typeof b[k]=="object"&&!Array.isArray(b[k]))?merge(a[k]||{},b[k]):b[k];return a}

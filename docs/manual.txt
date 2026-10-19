@@ -1,0 +1,28 @@
+# Intro
+Cat Pro-1 is a patch book for the Behringer Pro-1. The Pro-1 cannot load or save sounds over MIDI, so a patch here is a recipe: a picture of the front panel with every knob and switch value, which you set by hand on the synth. The book runs in your web browser, keeps everything on your computer, and sends nothing anywhere.
+
+# Quick start
+- Unzip the download and open CatPro1-RecipeBook.html in a browser (Firefox, Chrome, Edge, Safari). It draws the Pro-1 front panel at its real proportions: knobs, switches, patch jacks and wood cheeks.
+- Pick a recipe from the Recipes shelf. Set your Pro-1 to match the panel on screen. Dashed rings and yellow question marks mark values that were read from a photo and are estimates.
+- Drag a knob up or down, click a switch lever, drag the panel size slider or press Fit width. Open Recipe info, Patch cables and Patch sheet below the panel; Copy as text gives a plain recall sheet.
+- Save keeps the recipe in the browser's own storage; Export file saves a .json file anywhere (a cloud folder works). Import loads files back. Export all saves every recipe of every synth in one file.
+- The book also has panels for the Behringer CAT, TD-3-MO and TD-3 (pick them in the Synth menu). The TD-3 panels include a 16 step piano roll for the pattern.
+- CatPro1-PatchBook.html is the older, simpler page with the same patch format; it stays in the zip for people who shared patches with it.
+- Drag a knob up or down to change its value. Double click a knob to put it back to the Init value.
+- Type a name, author, category and notes, then press Export JSON to save your own patch as a file, or Copy JSON to paste it somewhere.
+- Import loads a patch file you saved or received.
+- The small scope is only a rough picture of the oscillator mix. It is not a model of the real synth.
+
+# Patch files
+- One patch is one .json text file (format in PATCH-FORMAT.md, included in the zip). Panel values use the printed scale of the Pro-1 (0 to 10, one decimal). Switches use the words printed on the panel.
+- Share a patch by opening a "Submit a patch" issue on the GitHub repo and pasting the JSON, or by pull request. Only submit your own patches.
+- The same page is also published online by the repo (GitHub Pages, folder docs) once the owner switches it on.
+
+# Recommendations
+- Start from Init and change one section at a time: oscillators, then mixer, then filter and envelopes.
+- Note the modulation routes (wheel or direct) and any patch cables in the Notes field; they change the sound as much as the knobs.
+- Keep your own patches in a folder next to the book, and back them up: they are plain text and small.
+
+# Install
+- Nothing to install. Unzip anywhere and open the HTML file. To remove it, delete the folder.
+- Windows, macOS and Linux all work; the page needs no internet connection.
