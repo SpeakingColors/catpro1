@@ -4,6 +4,8 @@
 
 Patch book and global-settings tool for the Behringer Pro-1 on Linux.
 
+<p align="center"><img src="docs/screenshot.png" alt="Cat Pro-1 recipe book" width="900"></p>
+
 ## Status
 Usable: the Cat Recipe Book (`docs/recipe-book.html`) draws the Pro-1 front panel and stores your recipes in the browser; the release zip has it as an offline file with a short manual. No plugin build yet.
 
